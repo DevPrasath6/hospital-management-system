@@ -20,6 +20,21 @@ const AppointmentSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    time: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    doctor: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    room: {
+        type: String,
+        default: "",
+        trim: true
+    },
     notes: {
         type: String,
         default: "",

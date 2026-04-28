@@ -8,7 +8,10 @@ const dataFile = path.join(dataDir, "store.json");
 const initialData = {
     users: [],
     appointments: [],
-    contacts: []
+    contacts: [],
+    doctors: [],
+    records: [],
+    bills: []
 };
 
 function ensureStore() {

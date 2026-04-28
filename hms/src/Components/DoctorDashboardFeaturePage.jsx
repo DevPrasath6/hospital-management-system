@@ -4,51 +4,113 @@ import { useAuth } from '../Context/AuthContext';
 import { storage, storageKeys } from '../Utils/storage';
 import { api } from '../Utils/api';
 import DoctorDashboardNavbar from './DoctorDashboard/DoctorDashboardNavbar';
-import { doctorFeaturePages, doctorTasks } from './DoctorDashboard/doctorDashboardData';
+import { doctorFeaturePages } from './DoctorDashboard/doctorDashboardData';
 
-function DoctorModuleTable({ columns, rows }) {
+function DoctorModuleTable({ columns, rows, renderActions }) {
   return (
     <div className="admin-module-table">
-      <div className="admin-module-table-head" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(130px, 1fr))` }}>
+      <div className="admin-module-table-head" style={{ gridTemplateColumns: `repeat(${columns.length + (renderActions ? 1 : 0)}, minmax(130px, 1fr))` }}>
         {columns.map((column) => <span key={column}>{column}</span>)}
+        {renderActions && <span>Actions</span>}
       </div>
       {rows.map((row) => (
-        <div className="admin-module-table-row" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(130px, 1fr))` }} key={Object.values(row).join('-')}>
+        <div className="admin-module-table-row" style={{ gridTemplateColumns: `repeat(${columns.length + (renderActions ? 1 : 0)}, minmax(130px, 1fr))` }} key={row._id || Object.values(row).join('-')}>
           {columns.map((column) => <span key={column}>{row[column]}</span>)}
+          {renderActions && <span>{renderActions(row)}</span>}
         </div>
       ))}
     </div>
   );
 }
 
-function ScheduleModule({ appointments }) {
+function ScheduleModule({ appointments, onUpdateAppointment, onDeleteAppointment }) {
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ date: '', time: '', doctor: '', room: '', status: 'Requested' });
+
+  function startEdit(appointment) {
+    setEditingId(appointment._id);
+    setForm({
+      date: appointment.date || '',
+      time: appointment.time || '',
+      doctor: appointment.doctor || '',
+      room: appointment.room || '',
+      status: appointment.status || 'Requested'
+    });
+  }
+
+  async function saveEdit(id) {
+    await onUpdateAppointment(id, form);
+    setEditingId(null);
+  }
+
   return (
     <section className="admin-module-layout">
       <article className="admin-card admin-module-wide">
-        <div className="admin-card-heading"><h3>Appointment schedule</h3><span>Today</span></div>
-        <DoctorModuleTable columns={['Time', 'Patient', 'Type', 'Room', 'Status']} rows={appointments.map((item) => ({
-          Time: item.date || 'Not set',
-          Patient: item.patientName || item.patient,
-          Type: item.notes || item.department,
-          Room: item.department,
-          Status: item.status || 'Requested'
-        }))} />
+        <div className="admin-card-heading"><h3>Appointment schedule</h3><span>{appointments.length} requests</span></div>
+        {appointments.length === 0 ? (
+          <p style={{ padding: '1rem', color: 'var(--text-muted, #888)' }}>No appointment requests found.</p>
+        ) : (
+          <div className="admin-module-table">
+            <div className="admin-module-table-head" style={{ gridTemplateColumns: 'repeat(8, minmax(130px, 1fr))' }}>
+              <span>Date</span><span>Time</span><span>Patient</span><span>Doctor</span><span>Room</span><span>Department</span><span>Status</span><span>Actions</span>
+            </div>
+            {appointments.map((item) => {
+              const isEditing = editingId === item._id;
+              return (
+                <div className="admin-module-table-row" style={{ gridTemplateColumns: 'repeat(8, minmax(130px, 1fr))' }} key={item._id}>
+                  {isEditing ? (
+                    <>
+                      <span><input type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} style={{ width: '100%' }} /></span>
+                      <span><input type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} style={{ width: '100%' }} /></span>
+                      <span>{item.patientName || item.patient || 'Patient'}</span>
+                      <span><input value={form.doctor} onChange={(event) => setForm({ ...form, doctor: event.target.value })} placeholder="Doctor name" style={{ width: '100%' }} /></span>
+                      <span><input value={form.room} onChange={(event) => setForm({ ...form, room: event.target.value })} placeholder="Room" style={{ width: '100%' }} /></span>
+                      <span>{item.department || 'Not set'}</span>
+                      <span>
+                        <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })} style={{ width: '100%' }}>
+                          <option>Requested</option>
+                          <option>Confirmed</option>
+                          <option>Checked in</option>
+                          <option>Completed</option>
+                          <option>Cancelled</option>
+                        </select>
+                      </span>
+                      <span className="admin-action-row">
+                        <button type="button" onClick={() => saveEdit(item._id)}>Save</button>
+                        <button type="button" onClick={() => setEditingId(null)}>Cancel</button>
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{item.date || 'Not assigned'}</span>
+                      <span>{item.time || 'Not assigned'}</span>
+                      <span>{item.patientName || item.patient || 'Patient'}</span>
+                      <span>{item.doctor || 'Not assigned'}</span>
+                      <span>{item.room || 'Not assigned'}</span>
+                      <span>{item.department || 'Not set'}</span>
+                      <span>{item.status || 'Requested'}</span>
+                      <span className="admin-action-row">
+                        <button type="button" onClick={() => startEdit(item)}>Assign</button>
+                        <button type="button" onClick={() => onUpdateAppointment(item._id, { status: 'Confirmed' })}>Accept</button>
+                        <button type="button" onClick={() => onUpdateAppointment(item._id, { status: 'Cancelled' })}>Cancel</button>
+                        <button type="button" onClick={() => onDeleteAppointment(item._id)} style={{ color: 'crimson' }}>Delete</button>
+                      </span>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </article>
       <article className="admin-card">
-        <div className="admin-card-heading"><h3>Availability controls</h3><span>Slots</span></div>
-        <ul className="admin-compact-list">
-          <li>Open emergency buffer from 12:00 to 12:30</li>
-          <li>Block procedure time from 02:00 to 02:45</li>
-          <li>Mark evening OPD as limited availability</li>
-          <li>Request room C-204 for cardiology reviews</li>
-        </ul>
-      </article>
-      <article className="admin-card">
-        <div className="admin-card-heading"><h3>Visit status</h3><span>Flow</span></div>
+        <div className="admin-card-heading"><h3>Visit status</h3><span>Live flow</span></div>
         <div className="admin-lane-list">
           <div><strong>Requested</strong><span>{appointments.filter((item) => (item.status || 'Requested') === 'Requested').length} patients</span></div>
           <div><strong>Confirmed</strong><span>{appointments.filter((item) => item.status === 'Confirmed').length} patients</span></div>
+          <div><strong>Checked in</strong><span>{appointments.filter((item) => item.status === 'Checked in').length} patients</span></div>
           <div><strong>Completed</strong><span>{appointments.filter((item) => item.status === 'Completed').length} visits</span></div>
+          <div><strong>Cancelled</strong><span>{appointments.filter((item) => item.status === 'Cancelled').length} visits</span></div>
         </div>
       </article>
     </section>
@@ -79,51 +141,60 @@ function PatientsModule({ appointments }) {
   );
 }
 
-function ConsultationsModule() {
+function ConsultationsModule({ appointments, onUpdateAppointment }) {
+  const activeVisits = appointments.filter((item) => ['Confirmed', 'Checked in'].includes(item.status));
   return (
     <section className="admin-module-layout">
       <article className="admin-card admin-module-wide">
-        <div className="admin-card-heading"><h3>Consultation workspace</h3><span>Encounter notes</span></div>
-        <div className="doctor-consult-grid">
-          <div><strong>Symptoms</strong><span>Chest discomfort, fatigue, elevated BP</span></div>
-          <div><strong>Vitals</strong><span>BP 148/92, HR 86, SpO2 98%</span></div>
-          <div><strong>Diagnosis draft</strong><span>Hypertension review with cardiac risk screening</span></div>
-          <div><strong>Prescription draft</strong><span>Amlodipine review, lifestyle advice, follow-up in 2 weeks</span></div>
-        </div>
-      </article>
-      <article className="admin-card">
-        <div className="admin-card-heading"><h3>Pending actions</h3><span>Clinical</span></div>
-        <ul className="admin-compact-list">
-          {doctorTasks.map((task) => <li key={task}>{task}</li>)}
-        </ul>
+        <div className="admin-card-heading"><h3>Consultation workspace</h3><span>{activeVisits.length} active visits</span></div>
+        <DoctorModuleTable
+          columns={['Patient', 'Department', 'Date', 'Time', 'Room', 'Status', 'Notes']}
+          rows={activeVisits.map((item) => ({
+            _id: item._id,
+            Patient: item.patientName || item.patient || 'Patient',
+            Department: item.department || 'Not set',
+            Date: item.date || 'Not assigned',
+            Time: item.time || 'Not assigned',
+            Room: item.room || 'Not assigned',
+            Status: item.status || 'Requested',
+            Notes: item.notes || 'No notes'
+          }))}
+          renderActions={(row) => (
+            <span className="admin-action-row">
+              <button type="button" onClick={() => onUpdateAppointment(row._id, { status: 'Checked in' })}>Check in</button>
+              <button type="button" onClick={() => onUpdateAppointment(row._id, { status: 'Completed' })}>Complete</button>
+            </span>
+          )}
+        />
       </article>
     </section>
   );
 }
 
-function RecordsModule({ appointments }) {
+function RecordsModule({ appointments, records }) {
   return (
     <section className="admin-module-layout">
       <article className="admin-card admin-module-wide">
         <div className="admin-card-heading"><h3>Medical record review</h3><span>History</span></div>
         <DoctorModuleTable columns={['Patient', 'Record', 'Result', 'Flag', 'Action']} rows={[
+          ...records.map((item) => ({ Patient: item.patientName || 'Patient portal', Record: item.record, Result: item.note, Flag: item.status, Action: 'Review record' })),
           ...appointments.map((item) => ({ Patient: item.patientName || item.patient, Record: 'Appointment note', Result: item.notes || item.department, Flag: item.status || 'Requested', Action: 'Review during visit' }))
         ]} />
       </article>
       <article className="admin-card">
-        <div className="admin-card-heading"><h3>Record categories</h3><span>Files</span></div>
+        <div className="admin-card-heading"><h3>Record categories</h3><span>Live counts</span></div>
         <div className="admin-lane-list">
-          <div><strong>Lab reports</strong><span>11</span></div>
-          <div><strong>Imaging</strong><span>3</span></div>
-          <div><strong>Medication history</strong><span>18</span></div>
-          <div><strong>Allergy flags</strong><span>6</span></div>
+          <div><strong>Shared records</strong><span>{records.length}</span></div>
+          <div><strong>Appointment notes</strong><span>{appointments.length}</span></div>
+          <div><strong>Reviewed</strong><span>{records.filter((item) => item.status === 'Reviewed').length}</span></div>
+          <div><strong>Pending review</strong><span>{records.filter((item) => item.status !== 'Reviewed').length}</span></div>
         </div>
       </article>
     </section>
   );
 }
 
-function ReportsModule({ appointments }) {
+function ReportsModule({ appointments, records, bills }) {
   return (
     <section className="admin-module-layout">
       <article className="admin-card admin-module-wide">
@@ -131,28 +202,30 @@ function ReportsModule({ appointments }) {
         <DoctorModuleTable columns={['Report', 'Metric', 'Current', 'Target']} rows={[
           { Report: 'OPD completion', Metric: 'Visits completed', Current: String(appointments.filter((item) => item.status === 'Completed').length), Target: String(appointments.length) },
           { Report: 'Confirmed visits', Metric: 'Approved appointments', Current: String(appointments.filter((item) => item.status === 'Confirmed').length), Target: String(appointments.length) },
-          { Report: 'Pending requests', Metric: 'Awaiting action', Current: String(appointments.filter((item) => (item.status || 'Requested') === 'Requested').length), Target: '0' }
+          { Report: 'Pending requests', Metric: 'Awaiting action', Current: String(appointments.filter((item) => (item.status || 'Requested') === 'Requested').length), Target: '0' },
+          { Report: 'Medical records', Metric: 'Shared records', Current: String(records.length), Target: 'Live' },
+          { Report: 'Billing records', Metric: 'Patient bills', Current: String(bills.length), Target: 'Live' }
         ]} />
       </article>
       <article className="admin-card">
-        <div className="admin-card-heading"><h3>Exports</h3><span>Reports</span></div>
-        <ul className="admin-compact-list">
-          <li>Daily consultation summary</li>
-          <li>Pending note report</li>
-          <li>Follow-up patient list</li>
-          <li>Lab review summary</li>
-        </ul>
+        <div className="admin-card-heading"><h3>Report counts</h3><span>Live records</span></div>
+        <div className="admin-lane-list">
+          <div><strong>Appointments</strong><span>{appointments.length}</span></div>
+          <div><strong>Records</strong><span>{records.length}</span></div>
+          <div><strong>Bills</strong><span>{bills.length}</span></div>
+          <div><strong>Completed visits</strong><span>{appointments.filter((item) => item.status === 'Completed').length}</span></div>
+        </div>
       </article>
     </section>
   );
 }
 
-function DoctorFeatureModule({ feature, appointments }) {
-  if (feature === 'schedule') return <ScheduleModule appointments={appointments} />;
+function DoctorFeatureModule({ feature, appointments, records, bills, onUpdateAppointment, onDeleteAppointment }) {
+  if (feature === 'schedule') return <ScheduleModule appointments={appointments} onUpdateAppointment={onUpdateAppointment} onDeleteAppointment={onDeleteAppointment} />;
   if (feature === 'patients') return <PatientsModule appointments={appointments} />;
-  if (feature === 'consultations') return <ConsultationsModule />;
-  if (feature === 'records') return <RecordsModule appointments={appointments} />;
-  if (feature === 'reports') return <ReportsModule appointments={appointments} />;
+  if (feature === 'consultations') return <ConsultationsModule appointments={appointments} onUpdateAppointment={onUpdateAppointment} />;
+  if (feature === 'records') return <RecordsModule appointments={appointments} records={records} />;
+  if (feature === 'reports') return <ReportsModule appointments={appointments} records={records} bills={bills} />;
   return null;
 }
 
@@ -162,12 +235,28 @@ function DoctorDashboardFeaturePage() {
   const session = storage.readSession(storageKeys.authSession, null);
   const page = doctorFeaturePages[feature];
   const [appointments, setAppointments] = useState([]);
+  const [records, setRecords] = useState([]);
+  const [bills, setBills] = useState([]);
 
-  useEffect(() => {
-    api.getAppointments()
-      .then((response) => setAppointments(response.data || []))
-      .catch(() => setAppointments([]));
-  }, []);
+  function loadData() {
+    Promise.allSettled([api.getAppointments(), api.getRecords(), api.getBills()]).then(([appointmentsResult, recordsResult, billsResult]) => {
+      if (appointmentsResult.status === 'fulfilled') setAppointments(appointmentsResult.value.data || []);
+      if (recordsResult.status === 'fulfilled') setRecords(recordsResult.value.data || []);
+      if (billsResult.status === 'fulfilled') setBills(billsResult.value.data || []);
+    });
+  }
+
+  useEffect(() => { loadData(); }, []);
+
+  async function handleUpdateAppointment(id, data) {
+    await api.updateAppointment(id, data);
+    loadData();
+  }
+
+  async function handleDeleteAppointment(id) {
+    await api.deleteAppointment(id);
+    loadData();
+  }
 
   const liveStats = useMemo(() => ([
     { label: 'Appointments', value: String(appointments.length), note: 'Total records' },
@@ -210,7 +299,14 @@ function DoctorDashboardFeaturePage() {
             ))}
           </section>
 
-          <DoctorFeatureModule feature={feature} appointments={appointments} />
+          <DoctorFeatureModule
+            feature={feature}
+            appointments={appointments}
+            records={records}
+            bills={bills}
+            onUpdateAppointment={handleUpdateAppointment}
+            onDeleteAppointment={handleDeleteAppointment}
+          />
         </section>
       </div>
     </main>

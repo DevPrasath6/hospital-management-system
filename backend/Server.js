@@ -10,6 +10,7 @@ app.use(cors());
 const UserRoutes = require("./Routers/UserRoutes");
 const AppointmentRoutes = require("./Routers/AppointmentRoutes");
 const ContactRoutes = require("./Routers/ContactRoutes");
+const GenericRoutes = require("./Routers/GenericRoutes");
 
 app.get("/api/health", (req, res) => {
     res.status(200).json({ message: "API is running" });
@@ -18,6 +19,9 @@ app.get("/api/health", (req, res) => {
 app.use("/api/users", UserRoutes);
 app.use("/api/appointments", AppointmentRoutes);
 app.use("/api/contacts", ContactRoutes);
+app.use("/api/doctors", GenericRoutes("doctors"));
+app.use("/api/records", GenericRoutes("records"));
+app.use("/api/bills", GenericRoutes("bills"));
 
 mongoose
 .connect(process.env.MONGO_URL)

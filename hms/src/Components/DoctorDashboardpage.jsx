@@ -4,18 +4,22 @@ import { useAuth } from '../Context/AuthContext';
 import { storage, storageKeys } from '../Utils/storage';
 import { api } from '../Utils/api';
 import DoctorDashboardNavbar from './DoctorDashboard/DoctorDashboardNavbar';
-import { doctorTasks } from './DoctorDashboard/doctorDashboardData';
 
 function DoctorDashboardpage() {
   const { logout } = useAuth();
   const session = storage.readSession(storageKeys.authSession, null);
   const userName = session ? `${session.firstName || ''} ${session.lastName || ''}`.trim() : 'Doctor';
   const [appointments, setAppointments] = useState([]);
+  const [records, setRecords] = useState([]);
+  const [bills, setBills] = useState([]);
 
   useEffect(() => {
-    api.getAppointments()
-      .then((response) => setAppointments(response.data || []))
-      .catch(() => setAppointments([]));
+    Promise.allSettled([api.getAppointments(), api.getRecords(), api.getBills()])
+      .then(([appointmentsResult, recordsResult, billsResult]) => {
+        if (appointmentsResult.status === 'fulfilled') setAppointments(appointmentsResult.value.data || []);
+        if (recordsResult.status === 'fulfilled') setRecords(recordsResult.value.data || []);
+        if (billsResult.status === 'fulfilled') setBills(billsResult.value.data || []);
+      });
   }, []);
 
   const doctorMetrics = useMemo(() => ([
@@ -76,7 +80,7 @@ function DoctorDashboardpage() {
                 </div>
                 {appointments.map((item) => (
                   <div className="admin-module-table-row doctor-table-five" key={item._id}>
-                    <span>{item.date || 'Not set'}</span><span>{item.patientName || item.patient}</span><span>{item.notes || item.department}</span><span>{item.department}</span><span>{item.status || 'Requested'}</span>
+                    <span>{item.time || item.date || 'Not set'}</span><span>{item.patientName || item.patient}</span><span>{item.notes || item.department}</span><span>{item.room || item.department}</span><span>{item.status || 'Requested'}</span>
                   </div>
                 ))}
               </div>
@@ -96,24 +100,14 @@ function DoctorDashboardpage() {
 
             <article className="admin-card">
               <div className="admin-card-heading">
-                <h3>Clinical task list</h3>
-                <Link to="/doctor-dashboard/consultations">Open section</Link>
-              </div>
-              <ul className="admin-compact-list">
-                {doctorTasks.map((task) => <li key={task}>{task}</li>)}
-              </ul>
-            </article>
-
-            <article className="admin-card">
-              <div className="admin-card-heading">
                 <h3>Records and reports</h3>
                 <Link to="/doctor-dashboard/records">Open section</Link>
               </div>
               <div className="admin-lane-list">
-                <div><strong>Lab reports</strong><span>11 pending</span></div>
-                <div><strong>Imaging</strong><span>3 reviews</span></div>
-                <div><strong>Prescriptions</strong><span>12 drafted</span></div>
-                <div><strong>Clinical reports</strong><span>5 ready</span></div>
+                <div><strong>Medical records</strong><span>{records.length} shared</span></div>
+                <div><strong>Reviewed records</strong><span>{records.filter((item) => item.status === 'Reviewed').length} reviewed</span></div>
+                <div><strong>Billing records</strong><span>{bills.length} records</span></div>
+                <div><strong>Unpaid bills</strong><span>{bills.filter((item) => item.status !== 'Paid').length} open</span></div>
               </div>
             </article>
           </section>

@@ -58,5 +58,41 @@ export const api = {
   }),
   deleteContact: (id) => request(`/contacts/${id}`, {
     method: 'DELETE'
+  }),
+  getDoctors: () => request('/doctors'),
+  createDoctor: (data) => request('/doctors', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  updateDoctor: (id, data) => request(`/doctors/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+  deleteDoctor: (id) => request(`/doctors/${id}`, {
+    method: 'DELETE'
+  }),
+  getRecords: () => request('/records'),
+  createRecord: (data) => request('/records', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  updateRecord: (id, data) => request(`/records/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+  deleteRecord: (id) => request(`/records/${id}`, {
+    method: 'DELETE'
+  }),
+  getBills: () => request('/bills'),
+  createBill: (data) => request('/bills', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  updateBill: (id, data) => request(`/bills/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+  deleteBill: (id) => request(`/bills/${id}`, {
+    method: 'DELETE'
   })
 };

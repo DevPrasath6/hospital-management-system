@@ -6,15 +6,6 @@ import AdminDashboardNavbar from './AdminDashboard/AdminDashboardNavbar';
 import { api } from '../Utils/api';
 import { adminFeaturePages } from './AdminDashboard/adminDashboardData';
 
-const staffDirectory = [
-  { name: 'Dr. Sara Khan', role: 'Emergency Physician', department: 'Emergency', shift: 'Morning', status: 'On duty', contact: 'EXT-104' },
-  { name: 'Nurse Aditi Nair', role: 'ICU Nurse', department: 'Critical Care', shift: 'Night', status: 'Shift swap requested', contact: 'EXT-212' },
-  { name: 'Rohit Sharma', role: 'Lab Technician', department: 'Diagnostics', shift: 'Evening', status: 'Overtime review', contact: 'EXT-331' },
-  { name: 'Meera Patel', role: 'Reception Lead', department: 'Front Desk', shift: 'Morning', status: 'Backup needed', contact: 'EXT-010' },
-  { name: 'Anil Kumar', role: 'Pharmacist', department: 'Pharmacy', shift: 'Evening', status: 'On duty', contact: 'EXT-408' },
-  { name: 'Farah Ali', role: 'Housekeeping Supervisor', department: 'Facilities', shift: 'Day', status: 'On duty', contact: 'EXT-509' }
-];
-
 function AdminModuleTable({ columns, rows, renderActions }) {
   return (
     <div className="admin-module-table">
@@ -148,15 +139,25 @@ function DepartmentsModule({ users }) {
 /* ─────────────────────────────────────────────────────────────
    APPOINTMENTS MODULE — read + status update + delete (no create)
 ───────────────────────────────────────────────────────────── */
-function AppointmentsModule({ appointments, onStatusChange, onDelete }) {
-  const rows = appointments.map((item) => ({
-    _id: item._id,
-    Date: item.time || item.date || 'Not assigned',
-    Patient: item.patient || item.patientName,
-    Doctor: item.doctor || 'Not assigned',
-    Department: item.department,
-    Status: item.status || 'Requested'
-  }));
+function AppointmentsModule({ appointments, onStatusChange, onUpdateAppointment, onDelete }) {
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ date: '', time: '', doctor: '', room: '', status: 'Requested' });
+
+  function startEdit(appointment) {
+    setEditingId(appointment._id);
+    setForm({
+      date: appointment.date || '',
+      time: appointment.time || '',
+      doctor: appointment.doctor || '',
+      room: appointment.room || '',
+      status: appointment.status || 'Requested'
+    });
+  }
+
+  async function saveAppointment(id) {
+    await onUpdateAppointment(id, form);
+    setEditingId(null);
+  }
 
   return (
     <section className="admin-module-layout">
@@ -169,21 +170,61 @@ function AppointmentsModule({ appointments, onStatusChange, onDelete }) {
         {appointments.length === 0 ? (
           <p style={{ padding: '1rem', color: 'var(--text-muted, #888)' }}>No appointments found.</p>
         ) : (
-          <AdminModuleTable
-            columns={['Date', 'Patient', 'Doctor', 'Department', 'Status']}
-            rows={rows}
-            renderActions={(row) => (
-              <span className="admin-action-row">
-                {row.Status === 'Requested' && (
-                  <button type="button" onClick={() => onStatusChange(row._id, 'Confirmed')}>Confirm</button>
-                )}
-                {(row.Status === 'Confirmed' || row.Status === 'Checked in') && (
-                  <button type="button" onClick={() => onStatusChange(row._id, 'Completed')}>Complete</button>
-                )}
-                <button type="button" onClick={() => onDelete(row._id)} style={{ color: 'crimson' }}>Delete</button>
-              </span>
-            )}
-          />
+          <div className="admin-module-table">
+            <div className="admin-module-table-head" style={{ gridTemplateColumns: 'repeat(8, minmax(130px, 1fr))' }}>
+              <span>Date</span><span>Time</span><span>Patient</span><span>Doctor</span><span>Room</span><span>Department</span><span>Status</span><span>Actions</span>
+            </div>
+            {appointments.map((item) => {
+              const isEditing = editingId === item._id;
+              return (
+                <div className="admin-module-table-row" style={{ gridTemplateColumns: 'repeat(8, minmax(130px, 1fr))' }} key={item._id}>
+                  {isEditing ? (
+                    <>
+                      <span><input type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} style={{ width: '100%' }} /></span>
+                      <span><input type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} style={{ width: '100%' }} /></span>
+                      <span>{item.patientName || item.patient || 'Patient'}</span>
+                      <span><input value={form.doctor} onChange={(event) => setForm({ ...form, doctor: event.target.value })} placeholder="Doctor name" style={{ width: '100%' }} /></span>
+                      <span><input value={form.room} onChange={(event) => setForm({ ...form, room: event.target.value })} placeholder="Room" style={{ width: '100%' }} /></span>
+                      <span>{item.department || 'Not set'}</span>
+                      <span>
+                        <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })} style={{ width: '100%' }}>
+                          <option>Requested</option>
+                          <option>Confirmed</option>
+                          <option>Checked in</option>
+                          <option>Completed</option>
+                          <option>Cancelled</option>
+                        </select>
+                      </span>
+                      <span className="admin-action-row">
+                        <button type="button" onClick={() => saveAppointment(item._id)}>Save</button>
+                        <button type="button" onClick={() => setEditingId(null)}>Cancel</button>
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{item.date || 'Not assigned'}</span>
+                      <span>{item.time || 'Not assigned'}</span>
+                      <span>{item.patientName || item.patient || 'Patient'}</span>
+                      <span>{item.doctor || 'Not assigned'}</span>
+                      <span>{item.room || 'Not assigned'}</span>
+                      <span>{item.department || 'Not set'}</span>
+                      <span>{item.status || 'Requested'}</span>
+                      <span className="admin-action-row">
+                        <button type="button" onClick={() => startEdit(item)}>Schedule</button>
+                        {(item.status || 'Requested') === 'Requested' && (
+                          <button type="button" onClick={() => onStatusChange(item._id, 'Confirmed')}>Accept</button>
+                        )}
+                        {(item.status === 'Confirmed' || item.status === 'Checked in') && (
+                          <button type="button" onClick={() => onStatusChange(item._id, 'Completed')}>Complete</button>
+                        )}
+                        <button type="button" onClick={() => onDelete(item._id)} style={{ color: 'crimson' }}>Delete</button>
+                      </span>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </article>
 
@@ -478,7 +519,7 @@ function ResourcesModule({ contacts, onCreateContact, onUpdateContact, onDeleteC
 /* ─────────────────────────────────────────────────────────────
    REPORTS MODULE — read + delete appointments and contacts
 ───────────────────────────────────────────────────────────── */
-function ReportsModule({ users, appointments, contacts, onDeleteAppointment, onDeleteContact }) {
+function ReportsModule({ users, appointments, contacts, doctors, records, bills, onDeleteAppointment, onDeleteContact }) {
   return (
     <section className="admin-module-layout">
       {/* Appointments report */}
@@ -536,6 +577,9 @@ function ReportsModule({ users, appointments, contacts, onDeleteAppointment, onD
           <div><strong>Appointments</strong><span>{appointments.length} records</span></div>
           <div><strong>Open messages</strong><span>{contacts.filter((c) => (c.status || 'Open') === 'Open').length} unresolved</span></div>
           <div><strong>Doctors</strong><span>{users.filter((u) => u.role === 'Doctor').length} clinical accounts</span></div>
+          <div><strong>Patient doctor records</strong><span>{doctors.length} records</span></div>
+          <div><strong>Medical records</strong><span>{records.length} records</span></div>
+          <div><strong>Billing records</strong><span>{bills.length} records</span></div>
         </div>
       </article>
 
@@ -557,16 +601,16 @@ function ReportsModule({ users, appointments, contacts, onDeleteAppointment, onD
    FEATURE ROUTER
 ───────────────────────────────────────────────────────────── */
 function AdminFeatureModule({
-  feature, users, appointments, contacts,
-  onStatusChange, onDeleteAppointment,
+  feature, users, appointments, contacts, doctors, records, bills,
+  onStatusChange, onUpdateAppointment, onDeleteAppointment,
   onCreateUser, onUpdateUser, onDeleteUser,
   onCreateContact, onUpdateContact, onDeleteContact
 }) {
   if (feature === 'departments') return <DepartmentsModule users={users} />;
-  if (feature === 'appointments') return <AppointmentsModule appointments={appointments} onStatusChange={onStatusChange} onDelete={onDeleteAppointment} />;
+  if (feature === 'appointments') return <AppointmentsModule appointments={appointments} onStatusChange={onStatusChange} onUpdateAppointment={onUpdateAppointment} onDelete={onDeleteAppointment} />;
   if (feature === 'staff') return <StaffModule users={users} onCreateUser={onCreateUser} onUpdateUser={onUpdateUser} onDeleteUser={onDeleteUser} />;
   if (feature === 'resources') return <ResourcesModule contacts={contacts} onCreateContact={onCreateContact} onUpdateContact={onUpdateContact} onDeleteContact={onDeleteContact} />;
-  if (feature === 'reports') return <ReportsModule users={users} appointments={appointments} contacts={contacts} onDeleteAppointment={onDeleteAppointment} onDeleteContact={onDeleteContact} />;
+  if (feature === 'reports') return <ReportsModule users={users} appointments={appointments} contacts={contacts} doctors={doctors} records={records} bills={bills} onDeleteAppointment={onDeleteAppointment} onDeleteContact={onDeleteContact} />;
   return null;
 }
 
@@ -581,21 +625,31 @@ function AdminDashboardFeaturePage() {
   const [users, setUsers] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [records, setRecords] = useState([]);
+  const [bills, setBills] = useState([]);
 
   async function loadData() {
-    const [usersResult, appointmentsResult, contactsResult] = await Promise.allSettled([
+    const [usersResult, appointmentsResult, contactsResult, doctorsResult, recordsResult, billsResult] = await Promise.allSettled([
       api.getUsers(),
       api.getAppointments(),
-      api.getContacts()
+      api.getContacts(),
+      api.getDoctors(),
+      api.getRecords(),
+      api.getBills()
     ]);
     if (usersResult.status === 'fulfilled') setUsers(usersResult.value.data || []);
     if (appointmentsResult.status === 'fulfilled') setAppointments(appointmentsResult.value.data || []);
     if (contactsResult.status === 'fulfilled') setContacts(contactsResult.value.data || []);
+    if (doctorsResult.status === 'fulfilled') setDoctors(doctorsResult.value.data || []);
+    if (recordsResult.status === 'fulfilled') setRecords(recordsResult.value.data || []);
+    if (billsResult.status === 'fulfilled') setBills(billsResult.value.data || []);
   }
 
   useEffect(() => { loadData(); }, []);
 
   async function handleAppointmentStatus(id, status) { await api.updateAppointment(id, { status }); loadData(); }
+  async function handleUpdateAppointment(id, data) { await api.updateAppointment(id, data); loadData(); }
   async function handleDeleteAppointment(id) { await api.deleteAppointment(id); loadData(); }
 
   async function handleCreateUser(data) { await api.signup(data); loadData(); }
@@ -668,7 +722,11 @@ function AdminDashboardFeaturePage() {
             users={users}
             appointments={appointments}
             contacts={contacts}
+            doctors={doctors}
+            records={records}
+            bills={bills}
             onStatusChange={handleAppointmentStatus}
+            onUpdateAppointment={handleUpdateAppointment}
             onDeleteAppointment={handleDeleteAppointment}
             onCreateUser={handleCreateUser}
             onUpdateUser={handleUpdateUser}
