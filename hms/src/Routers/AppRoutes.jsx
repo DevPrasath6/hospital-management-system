@@ -1,0 +1,34 @@
+import React from 'react';
+import { Route, Routes } from 'react-router-dom';
+import Homepage from '../Components/Homepage';
+import Aboutpage from '../Components/Aboutpage';
+import Servicespage from '../Components/Servicespage';
+import Doctorspage from '../Components/Doctorspage';
+import Appointmentpage from '../Components/Appointmentpage';
+import Contactpage from '../Components/Contactpage';
+import Signuppage from '../Components/Signuppage';
+import Loginpage from '../Components/Loginpage';
+import Forgotpasswordpage from '../Components/Forgotpasswordpage';
+import Faqpage from '../Components/Faqpage';
+import PagePlaceholder from '../Components/PagePlaceholder';
+
+function AppRoutes(){
+    return(
+        <Routes>
+            <Route path="/" element={<Homepage />} />
+            <Route path='/about' element={<Aboutpage />} />
+            <Route path="/services" element={<Servicespage />} />
+            <Route path="/doctors" element={<Doctorspage />} />
+            <Route path="/appointment" element={<Appointmentpage />} />
+            <Route path="/contact" element={<Contactpage />} />
+            <Route path="/profile" element={<PagePlaceholder title="Profile" />} />
+            <Route path="/signup" element={<Signuppage />} />
+            <Route path="/login" element={<Loginpage />} />
+            <Route path="/forgot" element={<Forgotpasswordpage />} />
+            <Route path="/faq" element={<Faqpage />} />
+            <Route path="*" element={<PagePlaceholder title="Page Not Found" />} />
+        </Routes>
+    );
+}
+
+export default AppRoutes;
