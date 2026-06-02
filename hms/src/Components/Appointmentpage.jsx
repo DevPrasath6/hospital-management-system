@@ -1,11 +1,64 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useAuth } from '../Context/AuthContext';
+import { storage, storageKeys } from '../Utils/storage';
 
 function Appointmentpage() {
+  const { isLoggedIn } = useAuth();
   const [message, setMessage] = useState('');
+  const [formData, setFormData] = useState({
+    patientName: '',
+    phone: '',
+    department: 'Cardiology',
+    date: '',
+    notes: ''
+  });
+
+  useEffect(() => {
+    const draft = storage.readSession(storageKeys.appointmentDraft, null);
+    if (draft) {
+      setFormData((current) => ({
+        ...current,
+        ...draft
+      }));
+    }
+  }, []);
+
+  function handleChange(event) {
+    const { name, value } = event.target;
+
+    setFormData((current) => {
+      const nextFormData = {
+        ...current,
+        [name]: value
+      };
+
+      storage.writeSession(storageKeys.appointmentDraft, nextFormData);
+      return nextFormData;
+    });
+  }
 
   function handleSubmit(event) {
     event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const submission = {
+      patientName: form.get('patientName')?.trim() || '',
+      phone: form.get('phone')?.trim() || '',
+      department: form.get('department') || 'Cardiology',
+      date: form.get('date') || '',
+      notes: form.get('notes')?.trim() || ''
+    };
+
+    const requests = storage.readLocal(storageKeys.appointmentRequests, []);
+    storage.writeLocal(storageKeys.appointmentRequests, [...requests, submission]);
+    storage.removeSession(storageKeys.appointmentDraft);
+    setFormData({
+      patientName: '',
+      phone: '',
+      department: 'Cardiology',
+      date: '',
+      notes: ''
+    });
     setMessage('Appointment request submitted. Our team will confirm your booking shortly.');
     event.currentTarget.reset();
   }
@@ -28,7 +81,7 @@ function Appointmentpage() {
               <NavLink to="/doctors">Doctors</NavLink>
               <NavLink to="/appointment">Appointment</NavLink>
               <NavLink to="/contact">Contact</NavLink>
-              <NavLink className="nav-icon" to="/profile" aria-label="Profile">+</NavLink>
+              {isLoggedIn && <NavLink className="nav-icon" to="/profile" aria-label="Profile">+</NavLink>}
             </nav>
           </header>
 
@@ -50,18 +103,18 @@ function Appointmentpage() {
                 <div className="form-row">
                   <div className="field">
                     <label htmlFor="patient-name">Patient name</label>
-                    <input id="patient-name" type="text" placeholder="Full name" required />
+                    <input id="patient-name" name="patientName" type="text" placeholder="Full name" required value={formData.patientName} onChange={handleChange} />
                   </div>
                   <div className="field">
                     <label htmlFor="phone">Phone number</label>
-                    <input id="phone" type="tel" placeholder="+1 555 123 4567" required />
+                    <input id="phone" name="phone" type="tel" placeholder="+1 555 123 4567" required value={formData.phone} onChange={handleChange} />
                   </div>
                 </div>
 
                 <div className="form-row">
                   <div className="field">
                     <label htmlFor="department">Department</label>
-                    <select id="department" defaultValue="Cardiology">
+                    <select id="department" name="department" value={formData.department} onChange={handleChange}>
                       <option>Cardiology</option>
                       <option>General Medicine</option>
                       <option>Pediatrics</option>
@@ -70,13 +123,13 @@ function Appointmentpage() {
                   </div>
                   <div className="field">
                     <label htmlFor="date">Preferred date</label>
-                    <input id="date" type="date" required />
+                    <input id="date" name="date" type="date" required value={formData.date} onChange={handleChange} />
                   </div>
                 </div>
 
                 <div className="field">
                   <label htmlFor="notes">Notes</label>
-                  <input id="notes" type="text" placeholder="Brief reason for visit" />
+                  <input id="notes" name="notes" type="text" placeholder="Brief reason for visit" value={formData.notes} onChange={handleChange} />
                 </div>
 
                 <button className="button" type="submit">Request appointment</button>

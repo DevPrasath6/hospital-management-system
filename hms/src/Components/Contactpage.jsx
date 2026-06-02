@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useAuth } from '../Context/AuthContext';
+import { storage, storageKeys } from '../Utils/storage';
 
 const initialErrors = {
   name: '',
@@ -9,8 +11,39 @@ const initialErrors = {
 };
 
 function Contactpage() {
+  const { isLoggedIn } = useAuth();
   const [errors, setErrors] = useState(initialErrors);
   const [status, setStatus] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  useEffect(() => {
+    const draft = storage.readSession(storageKeys.contactDraft, null);
+    if (draft) {
+      setFormData((current) => ({
+        ...current,
+        ...draft
+      }));
+    }
+  }, []);
+
+  function handleChange(event) {
+    const { name, value } = event.target;
+
+    setFormData((current) => {
+      const nextFormData = {
+        ...current,
+        [name]: value
+      };
+
+      storage.writeSession(storageKeys.contactDraft, nextFormData);
+      return nextFormData;
+    });
+  }
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -28,6 +61,23 @@ function Contactpage() {
       setStatus('');
       return;
     }
+
+    const record = {
+      name: form.get('name')?.trim() || '',
+      email: form.get('email')?.trim() || '',
+      subject: form.get('subject')?.trim() || '',
+      message: form.get('message')?.trim() || ''
+    };
+
+    const messages = storage.readLocal(storageKeys.contactMessages, []);
+    storage.writeLocal(storageKeys.contactMessages, [...messages, record]);
+    storage.removeSession(storageKeys.contactDraft);
+    setFormData({
+      name: '',
+      email: '',
+      subject: '',
+      message: ''
+    });
 
     setStatus('Message sent successfully. Our team will reply as soon as possible.');
     event.currentTarget.reset();
@@ -51,7 +101,7 @@ function Contactpage() {
               <NavLink to="/doctors">Doctors</NavLink>
               <NavLink to="/appointment">Appointment</NavLink>
               <NavLink to="/contact">Contact</NavLink>
-              <NavLink className="nav-icon" to="/profile" aria-label="Profile">+</NavLink>
+              {isLoggedIn && <NavLink className="nav-icon" to="/profile" aria-label="Profile">+</NavLink>}
             </nav>
           </header>
 
@@ -83,6 +133,8 @@ function Contactpage() {
                       placeholder="Your name"
                       autoComplete="name"
                       aria-describedby="name-error"
+                      value={formData.name}
+                      onChange={handleChange}
                     />
                     <small className="field-error" id="name-error" aria-live="polite">{errors.name}</small>
                   </div>
@@ -95,6 +147,8 @@ function Contactpage() {
                       placeholder="you@example.com"
                       autoComplete="email"
                       aria-describedby="email-error"
+                      value={formData.email}
+                      onChange={handleChange}
                     />
                     <small className="field-error" id="email-error" aria-live="polite">{errors.email}</small>
                   </div>
@@ -108,6 +162,8 @@ function Contactpage() {
                     type="text"
                     placeholder="How can we help?"
                     aria-describedby="subject-error"
+                    value={formData.subject}
+                    onChange={handleChange}
                   />
                   <small className="field-error" id="subject-error" aria-live="polite">{errors.subject}</small>
                 </div>
@@ -120,6 +176,8 @@ function Contactpage() {
                     rows="5"
                     placeholder="Write your message here"
                     aria-describedby="message-error"
+                    value={formData.message}
+                    onChange={handleChange}
                   ></textarea>
                   <small className="field-error" id="message-error" aria-live="polite">{errors.message}</small>
                 </div>

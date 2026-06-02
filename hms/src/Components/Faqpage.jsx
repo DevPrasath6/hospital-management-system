@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useAuth } from '../Context/AuthContext';
 
 const faqs = [
   {
@@ -36,6 +37,7 @@ const faqs = [
 ];
 
 function Faqpage() {
+  const { isLoggedIn } = useAuth();
   const [openId, setOpenId] = useState(null);
 
   return (
@@ -56,7 +58,7 @@ function Faqpage() {
               <NavLink to="/doctors">Doctors</NavLink>
               <NavLink to="/appointment">Appointment</NavLink>
               <NavLink to="/contact">Contact</NavLink>
-              <NavLink className="nav-icon" to="/profile" aria-label="Profile">+</NavLink>
+              {isLoggedIn && <NavLink className="nav-icon" to="/profile" aria-label="Profile">+</NavLink>}
             </nav>
           </header>
 

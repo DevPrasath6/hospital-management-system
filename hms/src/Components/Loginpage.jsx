@@ -1,22 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../Context/AuthContext';
+import { storage, storageKeys } from '../Utils/storage';
 
 function Loginpage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setEmail(localStorage.getItem('medicare_email') || '');
+    const rememberedEmail = storage.readLocal(storageKeys.rememberedEmail, '');
+    setEmail(rememberedEmail);
+    setRemember(Boolean(rememberedEmail));
   }, []);
 
   function handleSubmit(event) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const emailValue = form.get('email')?.trim() || '';
-    const password = form.get('password') || '';
-    const remember = form.get('remember') === 'on';
+    const emailValue = email.trim();
+    const passwordValue = password.trim();
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
       setError('Please enter a valid email address.');
@@ -24,21 +29,37 @@ function Loginpage() {
       return;
     }
 
-    if (!password) {
+    if (!passwordValue) {
       setError('Please enter your password.');
       setStatus('');
       return;
     }
 
+    const users = storage.readLocal(storageKeys.users, []);
+    const userRecord = users.find((user) => user.email === emailValue && user.password === passwordValue);
+
+    if (!userRecord) {
+      setError('No matching account was found. Please sign up first or check your password.');
+      setStatus('');
+      return;
+    }
+
     if (remember) {
-      localStorage.setItem('medicare_email', emailValue);
+      storage.writeLocal(storageKeys.rememberedEmail, emailValue);
     } else {
-      localStorage.removeItem('medicare_email');
+      storage.removeLocal(storageKeys.rememberedEmail);
     }
 
     setError('');
     setStatus('Login successful. Redirecting...');
-    setTimeout(() => navigate('/profile'), 800);
+    login({
+      firstName: userRecord.firstName,
+      lastName: userRecord.lastName,
+      email: userRecord.email,
+      role: userRecord.role
+    });
+    const destination = userRecord.role === 'Doctor' ? '/doctor-dashboard' : '/admin-dashboard';
+    setTimeout(() => navigate(destination), 800);
   }
 
   return (
@@ -59,7 +80,7 @@ function Loginpage() {
               <NavLink to="/doctors">Doctors</NavLink>
               <NavLink to="/appointment">Appointment</NavLink>
               <NavLink to="/contact">Contact</NavLink>
-              <NavLink className="nav-icon" to="/profile" aria-label="Profile">+</NavLink>
+              {false && <NavLink className="nav-icon" to="/profile" aria-label="Profile">+</NavLink>}
             </nav>
           </header>
 
@@ -95,12 +116,25 @@ function Loginpage() {
 
                 <div className="field">
                   <label htmlFor="password">Password</label>
-                  <input id="password" name="password" type="password" placeholder="Enter your password" />
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
                 </div>
 
                 <div className="form-options">
                   <label className="checkbox" htmlFor="remember">
-                    <input id="remember" name="remember" type="checkbox" />
+                    <input
+                      id="remember"
+                      name="remember"
+                      type="checkbox"
+                      checked={remember}
+                      onChange={(event) => setRemember(event.target.checked)}
+                    />
                     <span>Remember me</span>
                   </label>
                   <Link to="/forgot">Forgot password?</Link>

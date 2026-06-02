@@ -11,6 +11,9 @@ import Loginpage from '../Components/Loginpage';
 import Forgotpasswordpage from '../Components/Forgotpasswordpage';
 import Faqpage from '../Components/Faqpage';
 import PagePlaceholder from '../Components/PagePlaceholder';
+import AdminDashboardpage from '../Components/AdminDashboardpage';
+import DoctorDashboardpage from '../Components/DoctorDashboardpage';
+import DashboardRedirect from '../Components/DashboardRedirect';
 
 function AppRoutes(){
     return(
@@ -21,7 +24,9 @@ function AppRoutes(){
             <Route path="/doctors" element={<Doctorspage />} />
             <Route path="/appointment" element={<Appointmentpage />} />
             <Route path="/contact" element={<Contactpage />} />
-            <Route path="/profile" element={<PagePlaceholder title="Profile" />} />
+            <Route path="/profile" element={<DashboardRedirect />} />
+            <Route path="/admin-dashboard" element={<AdminDashboardpage />} />
+            <Route path="/doctor-dashboard" element={<DoctorDashboardpage />} />
             <Route path="/signup" element={<Signuppage />} />
             <Route path="/login" element={<Loginpage />} />
             <Route path="/forgot" element={<Forgotpasswordpage />} />
