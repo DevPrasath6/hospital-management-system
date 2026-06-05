@@ -1,147 +1,121 @@
-import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import { storage, storageKeys } from '../Utils/storage';
+import { api } from '../Utils/api';
+import AdminAlertsSection from './AdminDashboard/AdminAlertsSection';
+import AdminAppointmentsSection from './AdminDashboard/AdminAppointmentsSection';
+import AdminDashboardHero from './AdminDashboard/AdminDashboardHero';
+import AdminDashboardNavbar from './AdminDashboard/AdminDashboardNavbar';
+import AdminDashboardSidebar from './AdminDashboard/AdminDashboardSidebar';
+import AdminDepartmentsSection from './AdminDashboard/AdminDepartmentsSection';
+import AdminMetricsSection from './AdminDashboard/AdminMetricsSection';
+import AdminReportsSection from './AdminDashboard/AdminReportsSection';
+import AdminResourcesSection from './AdminDashboard/AdminResourcesSection';
+import AdminStaffSection from './AdminDashboard/AdminStaffSection';
+import {
+  metrics
+} from './AdminDashboard/adminDashboardData';
 
 function AdminDashboardpage() {
   const { logout } = useAuth();
   const session = storage.readSession(storageKeys.authSession, null);
   const userName = session ? `${session.firstName || ''} ${session.lastName || ''}`.trim() : 'Hospital Admin';
-  const dashboardStats = [
-    { label: 'Today’s appointments', value: '24', note: '+6 since yesterday' },
-    { label: 'Active doctors', value: '18', note: '4 departments covered' },
-    { label: 'Pending messages', value: '7', note: '2 urgent follow-ups' },
-    { label: 'Open tasks', value: '12', note: 'Ward and admin coordination' }
-  ];
+  const [appointments, setAppointments] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [contacts, setContacts] = useState([]);
 
-  const quickActions = [
-    'Review appointment queue',
-    'Approve staff schedules',
-    'Track patient messages',
-    'Monitor department load'
-  ];
+  useEffect(() => {
+    async function loadDashboardData() {
+      const [appointmentsResult, usersResult, contactsResult] = await Promise.allSettled([
+        api.getAppointments(),
+        api.getUsers(),
+        api.getContacts()
+      ]);
 
-  const recentActivity = [
-    'Cardiology appointment confirmed for 10:30 AM.',
-    'Two new contact messages were received from patients.',
-    'Reception uploaded a new request for room allocation.',
-    'Staff availability updated for the evening shift.'
-  ];
+      if (appointmentsResult.status === 'fulfilled') {
+        setAppointments(appointmentsResult.value.data || []);
+      }
 
-  const dashboardModules = [
-    {
-      title: 'Doctors',
-      text: 'Review availability, specializations, shift coverage, and performance updates.'
-    },
-    {
-      title: 'Patients',
-      text: 'Track patient records, visit history, and follow-up requirements.'
-    },
-    {
-      title: 'Appointments',
-      text: 'Manage requests, confirmations, cancellations, and daily visit flow.'
-    },
-    {
-      title: 'Departments',
-      text: 'Coordinate cardiology, pediatrics, general medicine, and other service lines.'
-    },
-    {
-      title: 'Staff',
-      text: 'Keep nurses, reception, and support teams aligned with current schedules.'
-    },
-    {
-      title: 'Billing',
-      text: 'Review invoices, payment status, and outstanding balances at a glance.'
-    },
-    {
-      title: 'Inventory',
-      text: 'Monitor supplies, medical stock, equipment usage, and low-stock alerts.'
-    },
-    {
-      title: 'Reports',
-      text: 'Inspect operational summaries, trends, and department-level snapshots.'
-    },
-    {
-      title: 'Settings',
-      text: 'Adjust system preferences, access rules, and dashboard configuration.'
+      if (usersResult.status === 'fulfilled') {
+        setUsers(usersResult.value.data || []);
+      }
+
+      if (contactsResult.status === 'fulfilled') {
+        setContacts(contactsResult.value.data || []);
+      }
     }
-  ];
+
+    loadDashboardData();
+  }, []);
+
+  const liveMetrics = useMemo(() => ([
+    { label: 'Total users', value: String(users.length), note: 'Registered admins, doctors, and patients', icon: 'US' },
+    { label: 'Appointments', value: String(appointments.length), note: `${appointments.filter((item) => (item.status || 'Requested') === 'Requested').length} waiting approval`, icon: 'AP' },
+    { label: 'Doctors', value: String(users.filter((user) => user.role === 'Doctor').length), note: 'Registered doctor accounts', icon: 'DR' },
+    { label: 'Patients', value: String(users.filter((user) => user.role === 'Patient').length), note: 'Registered patient accounts', icon: 'PT' },
+    { label: 'Messages', value: String(contacts.length), note: `${contacts.filter((item) => (item.status || 'Open') === 'Open').length} open support messages`, icon: 'MS' },
+    { label: 'Confirmed visits', value: String(appointments.filter((item) => item.status === 'Confirmed').length), note: 'Approved appointment requests', icon: 'CV' }
+  ]), [appointments, contacts, users]);
+
+  const liveDepartments = useMemo(() => {
+    const doctorCount = users.filter((user) => user.role === 'Doctor').length;
+    return [
+      { name: 'Registered doctors', load: Math.min(100, doctorCount * 10), doctors: doctorCount, patients: users.filter((user) => user.role === 'Patient').length, status: 'Live accounts' },
+      { name: 'Appointment desk', load: Math.min(100, appointments.length * 10), doctors: users.filter((user) => user.role === 'Hospital Admin').length, patients: appointments.length, status: 'Live requests' },
+      { name: 'Support desk', load: Math.min(100, contacts.length * 10), doctors: users.filter((user) => user.role !== 'Patient').length, patients: contacts.length, status: 'Live messages' }
+    ];
+  }, [appointments, contacts, users]);
+
+  const liveAlerts = useMemo(() => ([
+    ...appointments.filter((item) => (item.status || 'Requested') === 'Requested').slice(0, 2).map((item) => ({
+      title: `${item.patientName || item.patient || 'Patient'} appointment needs approval`,
+      tag: 'Appointment'
+    })),
+    ...contacts.filter((item) => (item.status || 'Open') === 'Open').slice(0, 2).map((item) => ({
+      title: `${item.subject} from ${item.name}`,
+      tag: 'Message'
+    }))
+  ]), [appointments, contacts]);
+
+  const liveStaffRoster = useMemo(() => ([
+    { role: 'Hospital Admin', coverage: String(users.filter((user) => user.role === 'Hospital Admin').length), shift: 'System users', note: 'Registered admin accounts' },
+    { role: 'Doctors', coverage: String(users.filter((user) => user.role === 'Doctor').length), shift: 'Clinical users', note: 'Registered doctor accounts' },
+    { role: 'Patients', coverage: String(users.filter((user) => user.role === 'Patient').length), shift: 'Patient portal', note: 'Registered patient accounts' }
+  ]), [users]);
+
+  const liveReports = useMemo(() => [
+    `Users: ${users.length} registered accounts`,
+    `Appointments: ${appointments.length} total records`,
+    `Messages: ${contacts.length} support records`,
+    `Open appointment requests: ${appointments.filter((item) => (item.status || 'Requested') === 'Requested').length}`
+  ], [appointments, contacts, users]);
+
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
-    <main className="page">
-      <div className="page-inner">
-        <header className="topbar">
-          <Link className="brand" to="/" aria-label="MediCare home">
-            <span className="brand-mark" aria-hidden="true"></span>
-            <span className="brand-name">MediCare</span>
-          </Link>
+    <main className="page admin-page">
+      <div className="page-inner admin-page-inner">
+        <AdminDashboardNavbar onLogout={logout} />
 
-          <nav className="nav" aria-label="Primary">
-            <NavLink to="/" end>Home</NavLink>
-            <NavLink to="/appointment">Appointment</NavLink>
-            <NavLink to="/contact">Contact</NavLink>
-            <NavLink to="/doctor-dashboard">Doctor Dashboard</NavLink>
-            <button className="button button-ghost" type="button" onClick={logout}>Logout</button>
-          </nav>
-        </header>
+        <section className="admin-shell" aria-labelledby="admin-dashboard-title">
+          <AdminDashboardSidebar userName={userName} />
 
-        <section className="auth-layout dashboard-layout">
-          <div className="auth-panel dashboard-panel">
-            <div className="kicker">Hospital operations</div>
-            <h1>Admin dashboard</h1>
-            <p>
-              Oversee appointments, staff flow, and patient communication from one control surface. Logged in as {userName || 'Hospital Admin'}.
-            </p>
-            <div className="hero-actions">
-              <Link className="button-secondary" to="/appointment">View appointments</Link>
-              <Link className="button-secondary" to="/contact">Open messages</Link>
-            </div>
+          <div className="admin-content">
+            <AdminDashboardHero />
+            <AdminMetricsSection metrics={liveMetrics.length ? liveMetrics : metrics} />
+
+            <section className="admin-grid">
+              <AdminDepartmentsSection departments={liveDepartments} />
+              <AdminAlertsSection alerts={liveAlerts} />
+              <AdminAppointmentsSection appointments={appointments} />
+              <AdminStaffSection staffRoster={liveStaffRoster} />
+              <AdminResourcesSection appointments={appointments} contacts={contacts} />
+              <AdminReportsSection reports={liveReports} />
+            </section>
           </div>
-
-          <section className="auth-card dashboard-card" aria-labelledby="admin-dashboard-title">
-            <h2 id="admin-dashboard-title">Admin overview</h2>
-            <p className="subtext">A compact view of the hospital’s daily operating picture.</p>
-
-            <div className="dashboard-grid">
-              {dashboardStats.map((item) => (
-                <article className="dashboard-stat" key={item.label}>
-                  <span className="dashboard-stat-label">{item.label}</span>
-                  <strong className="dashboard-stat-value">{item.value}</strong>
-                  <span className="dashboard-stat-note">{item.note}</span>
-                </article>
-              ))}
-            </div>
-
-            <div className="dashboard-section">
-              <h3>Priority actions</h3>
-              <ul className="dashboard-list">
-                {quickActions.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="dashboard-section">
-              <h3>Recent activity</h3>
-              <ul className="dashboard-list">
-                {recentActivity.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="dashboard-section">
-              <h3>Hospital modules</h3>
-              <div className="dashboard-modules">
-                {dashboardModules.map((module) => (
-                  <article className="dashboard-module" key={module.title}>
-                    <span className="dashboard-module-title">{module.title}</span>
-                    <p>{module.text}</p>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </section>
         </section>
       </div>
     </main>

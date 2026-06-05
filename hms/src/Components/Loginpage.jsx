@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import { storage, storageKeys } from '../Utils/storage';
+import { api } from '../Utils/api';
 
 function Loginpage() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ function Loginpage() {
     setRemember(Boolean(rememberedEmail));
   }, []);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const emailValue = email.trim();
     const passwordValue = password.trim();
@@ -35,8 +36,15 @@ function Loginpage() {
       return;
     }
 
-    const users = storage.readLocal(storageKeys.users, []);
-    const userRecord = users.find((user) => user.email === emailValue && user.password === passwordValue);
+    let userRecord = null;
+
+    try {
+      const response = await api.login({ email: emailValue, password: passwordValue });
+      userRecord = response.data;
+    } catch (apiError) {
+      const users = storage.readLocal(storageKeys.users, []);
+      userRecord = users.find((user) => user.email === emailValue && user.password === passwordValue);
+    }
 
     if (!userRecord) {
       setError('No matching account was found. Please sign up first or check your password.');
@@ -58,7 +66,11 @@ function Loginpage() {
       email: userRecord.email,
       role: userRecord.role
     });
-    const destination = userRecord.role === 'Doctor' ? '/doctor-dashboard' : '/admin-dashboard';
+    const destination = userRecord.role === 'Doctor'
+      ? '/doctor-dashboard'
+      : userRecord.role === 'Patient'
+        ? '/patient-dashboard'
+        : '/admin-dashboard';
     setTimeout(() => navigate(destination), 800);
   }
 

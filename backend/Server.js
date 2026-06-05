@@ -1,0 +1,30 @@
+const express = require('express');
+const mongoose = require('mongoose');
+require('dotenv').config();
+const cors = require("cors");
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+const UserRoutes = require("./Routers/UserRoutes");
+const AppointmentRoutes = require("./Routers/AppointmentRoutes");
+const ContactRoutes = require("./Routers/ContactRoutes");
+
+app.get("/api/health", (req, res) => {
+    res.status(200).json({ message: "API is running" });
+});
+
+app.use("/api/users", UserRoutes);
+app.use("/api/appointments", AppointmentRoutes);
+app.use("/api/contacts", ContactRoutes);
+
+mongoose
+.connect(process.env.MONGO_URL)
+.then(() => {console.log('Connected to MongoDB');})
+.catch((err) => console.error('Error connecting to MongoDB:', err));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT,() => {
+    console.log(`Port is running on ${PORT}`);
+});

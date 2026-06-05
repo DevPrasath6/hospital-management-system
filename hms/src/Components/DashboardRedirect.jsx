@@ -13,6 +13,10 @@ function DashboardRedirect() {
     return <Navigate to="/doctor-dashboard" replace />;
   }
 
+  if (session.role === 'Patient') {
+    return <Navigate to="/patient-dashboard" replace />;
+  }
+
   return <Navigate to="/admin-dashboard" replace />;
 }
 

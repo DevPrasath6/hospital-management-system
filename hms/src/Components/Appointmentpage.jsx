@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import { storage, storageKeys } from '../Utils/storage';
+import { api } from '../Utils/api';
 
 function Appointmentpage() {
   const { isLoggedIn } = useAuth();
@@ -38,7 +39,7 @@ function Appointmentpage() {
     });
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const submission = {
@@ -49,8 +50,13 @@ function Appointmentpage() {
       notes: form.get('notes')?.trim() || ''
     };
 
-    const requests = storage.readLocal(storageKeys.appointmentRequests, []);
-    storage.writeLocal(storageKeys.appointmentRequests, [...requests, submission]);
+    try {
+      await api.createAppointment(submission);
+    } catch (apiError) {
+      const requests = storage.readLocal(storageKeys.appointmentRequests, []);
+      storage.writeLocal(storageKeys.appointmentRequests, [...requests, submission]);
+    }
+
     storage.removeSession(storageKeys.appointmentDraft);
     setFormData({
       patientName: '',

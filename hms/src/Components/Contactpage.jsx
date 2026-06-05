@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import { storage, storageKeys } from '../Utils/storage';
+import { api } from '../Utils/api';
 
 const initialErrors = {
   name: '',
@@ -45,7 +46,7 @@ function Contactpage() {
     });
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const nextErrors = {
@@ -69,8 +70,13 @@ function Contactpage() {
       message: form.get('message')?.trim() || ''
     };
 
-    const messages = storage.readLocal(storageKeys.contactMessages, []);
-    storage.writeLocal(storageKeys.contactMessages, [...messages, record]);
+    try {
+      await api.createContact(record);
+    } catch (apiError) {
+      const messages = storage.readLocal(storageKeys.contactMessages, []);
+      storage.writeLocal(storageKeys.contactMessages, [...messages, record]);
+    }
+
     storage.removeSession(storageKeys.contactDraft);
     setFormData({
       name: '',

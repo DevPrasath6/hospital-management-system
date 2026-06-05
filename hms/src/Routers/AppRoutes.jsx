@@ -12,7 +12,11 @@ import Forgotpasswordpage from '../Components/Forgotpasswordpage';
 import Faqpage from '../Components/Faqpage';
 import PagePlaceholder from '../Components/PagePlaceholder';
 import AdminDashboardpage from '../Components/AdminDashboardpage';
+import AdminDashboardFeaturePage from '../Components/AdminDashboardFeaturePage';
 import DoctorDashboardpage from '../Components/DoctorDashboardpage';
+import DoctorDashboardFeaturePage from '../Components/DoctorDashboardFeaturePage';
+import PatientDashboardpage from '../Components/PatientDashboardpage';
+import PatientDashboardFeaturePage from '../Components/PatientDashboardFeaturePage';
 import DashboardRedirect from '../Components/DashboardRedirect';
 
 function AppRoutes(){
@@ -26,7 +30,11 @@ function AppRoutes(){
             <Route path="/contact" element={<Contactpage />} />
             <Route path="/profile" element={<DashboardRedirect />} />
             <Route path="/admin-dashboard" element={<AdminDashboardpage />} />
+            <Route path="/admin-dashboard/:feature" element={<AdminDashboardFeaturePage />} />
             <Route path="/doctor-dashboard" element={<DoctorDashboardpage />} />
+            <Route path="/doctor-dashboard/:feature" element={<DoctorDashboardFeaturePage />} />
+            <Route path="/patient-dashboard" element={<PatientDashboardpage />} />
+            <Route path="/patient-dashboard/:feature" element={<PatientDashboardFeaturePage />} />
             <Route path="/signup" element={<Signuppage />} />
             <Route path="/login" element={<Loginpage />} />
             <Route path="/forgot" element={<Forgotpasswordpage />} />
