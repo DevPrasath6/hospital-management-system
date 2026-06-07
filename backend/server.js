@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 
 const allowedOrigins = [
-    "https://hospital-management-system-orpin-one.vercel.app",
+    "https://hms-medicare.vercel.app/",
     "http://localhost:3000",
     "http://localhost:5173"
 ];
