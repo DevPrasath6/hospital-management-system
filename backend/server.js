@@ -12,6 +12,22 @@ const AppointmentRoutes = require("./Routers/AppointmentRoutes");
 const ContactRoutes = require("./Routers/ContactRoutes");
 const GenericRoutes = require("./Routers/GenericRoutes");
 
+app.get("/", (req, res) => {
+    res.status(200).json({
+        message: "Hospital Management System API is running",
+        status: "ok",
+        endpoints: {
+            health: "/api/health",
+            users: "/api/users",
+            appointments: "/api/appointments",
+            contacts: "/api/contacts",
+            doctors: "/api/doctors",
+            records: "/api/records",
+            bills: "/api/bills"
+        }
+    });
+});
+
 app.get("/api/health", (req, res) => {
     res.status(200).json({ message: "API is running" });
 });
@@ -22,6 +38,15 @@ app.use("/api/contacts", ContactRoutes);
 app.use("/api/doctors", GenericRoutes("doctors"));
 app.use("/api/records", GenericRoutes("records"));
 app.use("/api/bills", GenericRoutes("bills"));
+
+app.use((req, res) => {
+    res.status(404).json({
+        message: "Route not found",
+        path: req.originalUrl,
+        availableRoot: "/",
+        availableApiHealth: "/api/health"
+    });
+});
 
 mongoose
 .connect(process.env.MONGO_URL)
