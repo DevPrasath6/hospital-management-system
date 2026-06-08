@@ -5,7 +5,22 @@ const cors = require("cors");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+
+const allowedOrigins = [
+    "https://hospital-management-system-orpin-one.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173"
+];
+
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true
+}));
 
 const UserRoutes = require("./Routers/UserRoutes");
 const AppointmentRoutes = require("./Routers/AppointmentRoutes");
