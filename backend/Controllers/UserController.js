@@ -2,6 +2,7 @@ const User = require("../Models/UserModel");
 const fileStore = require("../Utils/fileStore");
 
 const publicUserFields = "-password";
+const primaryAdminEmail = "devprasatha9@gmail.com";
 
 function isMongoReady() {
     return User.db.readyState === 1;
@@ -10,18 +11,31 @@ function isMongoReady() {
 function stripPassword(user) {
     if (!user) return user;
     const { password, ...safeUser } = user.toObject ? user.toObject() : user;
-    return safeUser;
+    return applyProtectedRole(safeUser);
+}
+
+function applyProtectedRole(user) {
+    if (!user) return user;
+    if ((user.email || "").toLowerCase().trim() === primaryAdminEmail) {
+        return { ...user, role: "Hospital Admin" };
+    }
+    return user;
+}
+
+function publicSignupRole(email) {
+    return (email || "").toLowerCase().trim() === primaryAdminEmail ? "Hospital Admin" : "Patient";
 }
 
 async function createUser(req, res) {
     try {
-        const { firstName, lastName, email, mobileNumber = "", role = "Patient", password } = req.body;
+        const { firstName, lastName, email, mobileNumber = "", password } = req.body;
 
         if (!firstName || !lastName || !email || !password) {
             return res.status(400).json({ message: "firstName, lastName, email, and password are required." });
         }
 
         const normalizedEmail = email.toLowerCase().trim();
+        const role = publicSignupRole(normalizedEmail);
 
         if (!isMongoReady()) {
             const existing = fileStore.findOne("users", (user) => user.email === normalizedEmail);
@@ -42,6 +56,43 @@ async function createUser(req, res) {
         return res.status(201).json({ message: "User registered successfully.", data: savedUser });
     } catch (error) {
         return res.status(500).json({ message: "Error registering user.", error: error.message });
+    }
+}
+
+async function createManagedUser(req, res) {
+    try {
+        const { firstName, lastName, email, mobileNumber = "", role = "Patient", password } = req.body;
+
+        if (!firstName || !lastName || !email || !password) {
+            return res.status(400).json({ message: "firstName, lastName, email, and password are required." });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        const managedRole = normalizedEmail === primaryAdminEmail ? "Hospital Admin" : role;
+
+        if (!["Hospital Admin", "Doctor", "Patient"].includes(managedRole)) {
+            return res.status(400).json({ message: "Invalid user role." });
+        }
+
+        if (!isMongoReady()) {
+            const existing = fileStore.findOne("users", (user) => user.email === normalizedEmail);
+            if (existing) {
+                return res.status(409).json({ message: "An account with this email already exists." });
+            }
+            const user = fileStore.create("users", { firstName, lastName, email: normalizedEmail, mobileNumber, role: managedRole, password });
+            return res.status(201).json({ message: "User created successfully.", data: stripPassword(user) });
+        }
+
+        const existingUser = await User.findOne({ email: normalizedEmail });
+        if (existingUser) {
+            return res.status(409).json({ message: "An account with this email already exists." });
+        }
+
+        const user = await User.create({ firstName, lastName, email: normalizedEmail, mobileNumber, role: managedRole, password });
+        const savedUser = await User.findById(user._id).select(publicUserFields);
+        return res.status(201).json({ message: "User created successfully.", data: stripPassword(savedUser) });
+    } catch (error) {
+        return res.status(500).json({ message: "Error creating user.", error: error.message });
     }
 }
 
@@ -68,7 +119,7 @@ async function loginUser(req, res) {
             return res.status(401).json({ message: "Invalid email or password." });
         }
 
-        return res.status(200).json({ message: "Login successful.", data: user });
+        return res.status(200).json({ message: "Login successful.", data: applyProtectedRole(user.toObject ? user.toObject() : user) });
     } catch (error) {
         return res.status(500).json({ message: "Error logging in.", error: error.message });
     }
@@ -81,7 +132,7 @@ async function getUsers(req, res) {
         }
 
         const users = await User.find().select(publicUserFields).sort({ createdAt: -1 });
-        return res.status(200).json({ data: users });
+        return res.status(200).json({ data: users.map((user) => applyProtectedRole(user.toObject ? user.toObject() : user)) });
     } catch (error) {
         return res.status(500).json({ message: "Error fetching users.", error: error.message });
     }
@@ -101,7 +152,7 @@ async function getUserById(req, res) {
         if (!user) {
             return res.status(404).json({ message: "User not found." });
         }
-        return res.status(200).json({ data: user });
+        return res.status(200).json({ data: applyProtectedRole(user.toObject ? user.toObject() : user) });
     } catch (error) {
         return res.status(500).json({ message: "Error fetching user.", error: error.message });
     }
@@ -109,15 +160,29 @@ async function getUserById(req, res) {
 
 async function updateUser(req, res) {
     try {
+        const patch = { ...req.body };
+        if ((patch.email || "").toLowerCase().trim() === primaryAdminEmail) {
+            patch.role = "Hospital Admin";
+        }
+
         if (!isMongoReady()) {
-            const user = fileStore.update("users", req.params.id, req.body);
+            const existing = fileStore.findById("users", req.params.id);
+            if ((existing?.email || "").toLowerCase().trim() === primaryAdminEmail) {
+                patch.role = "Hospital Admin";
+            }
+            const user = fileStore.update("users", req.params.id, patch);
             if (!user) {
                 return res.status(404).json({ message: "User not found." });
             }
             return res.status(200).json({ message: "User updated successfully.", data: stripPassword(user) });
         }
 
-        const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+        const existingUser = await User.findById(req.params.id);
+        if ((existingUser?.email || "").toLowerCase().trim() === primaryAdminEmail) {
+            patch.role = "Hospital Admin";
+        }
+
+        const user = await User.findByIdAndUpdate(req.params.id, patch, {
             new: true,
             runValidators: true
         }).select(publicUserFields);
@@ -154,6 +219,7 @@ async function deleteUser(req, res) {
 
 module.exports = {
     createUser,
+    createManagedUser,
     loginUser,
     getUsers,
     getUserById,

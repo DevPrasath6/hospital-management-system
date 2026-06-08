@@ -150,12 +150,15 @@ Users:
 
 ```text
 POST   /users/signup
+POST   /users/managed
 POST   /users/login
 GET    /users
 GET    /users/:id
 PUT    /users/:id
 DELETE /users/:id
 ```
+
+Public signup creates Patient accounts by default. The protected admin email `devprasatha9@gmail.com` is always treated as a Hospital Admin. Doctor and additional admin accounts should be created from the Admin Dashboard staff management section, which uses `/users/managed`.
 
 Appointments:
 

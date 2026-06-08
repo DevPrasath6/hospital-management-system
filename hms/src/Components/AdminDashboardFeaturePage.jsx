@@ -652,7 +652,7 @@ function AdminDashboardFeaturePage() {
   async function handleUpdateAppointment(id, data) { await api.updateAppointment(id, data); loadData(); }
   async function handleDeleteAppointment(id) { await api.deleteAppointment(id); loadData(); }
 
-  async function handleCreateUser(data) { await api.signup(data); loadData(); }
+  async function handleCreateUser(data) { await api.createManagedUser(data); loadData(); }
   async function handleUpdateUser(id, data) { await api.updateUser(id, data); loadData(); }
   async function handleDeleteUser(id) { await api.deleteUser(id); loadData(); }
 

@@ -23,6 +23,10 @@ export const api = {
     method: 'POST',
     body: JSON.stringify(data)
   }),
+  createManagedUser: (data) => request('/users/managed', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
   login: (data) => request('/users/login', {
     method: 'POST',
     body: JSON.stringify(data)

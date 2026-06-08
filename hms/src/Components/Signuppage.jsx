@@ -13,7 +13,6 @@ function Signuppage() {
         firstName: '',
         lastName: '',
         email: '',
-        role: 'Hospital Admin',
         password: '',
         confirmPassword: '',
         terms: false
@@ -47,14 +46,15 @@ function Signuppage() {
 
     async function handleSubmit(event) {
         event.preventDefault();
-        const form = new FormData(event.currentTarget);
+        const signupForm = event.currentTarget;
+        const form = new FormData(signupForm);
         const firstName = form.get('firstName')?.trim() || '';
         const lastName = form.get('lastName')?.trim() || '';
         const email = form.get('email')?.trim() || '';
-        const role = form.get('role') || 'Hospital Admin';
         const password = form.get('password')?.trim() || '';
         const confirmPassword = form.get('confirmPassword')?.trim() || '';
         const termsAccepted = form.get('terms') === 'on';
+        const accountRole = email.toLowerCase() === 'devprasatha9@gmail.com' ? 'Hospital Admin' : 'Patient';
 
         if (!firstName || !lastName || !email || !password) {
             setError('Please complete all required fields.');
@@ -78,7 +78,7 @@ function Signuppage() {
             firstName,
             lastName,
             email,
-            role,
+            role: accountRole,
             password
         };
 
@@ -96,14 +96,13 @@ function Signuppage() {
             firstName,
             lastName,
             email,
-            role
+            role: accountRole
         });
         storage.removeSession(storageKeys.signupDraft);
         setFormData({
             firstName: '',
             lastName: '',
             email: '',
-            role: 'Hospital Admin',
             password: '',
             confirmPassword: '',
             terms: false
@@ -111,7 +110,7 @@ function Signuppage() {
 
         setError('');
         setStatus('Account created successfully. You can now sign in.');
-        event.currentTarget.reset();
+        signupForm.reset();
         setTimeout(() => navigate('/login'), 700);
     }
 
@@ -139,11 +138,11 @@ function Signuppage() {
 
                     <section className="auth-layout">
                         <div className="auth-panel">
-                            <div className="kicker">Create your hospital workspace</div>
-                            <h1>Build a smarter care network.</h1>
+                            <div className="kicker">Create your patient account</div>
+                            <h1>Start your care journey with MediCare.</h1>
                             <p>
-                                Set up your MediCare account to coordinate staff, patients, appointments, and services from a single
-                                secure dashboard.
+                                Set up your patient account to request appointments, view updates, manage records, billing, and support
+                                requests from a secure dashboard.
                             </p>
                             <div className="hero-actions">
                                 <Link className="button-secondary" to="/login">Back to login</Link>
@@ -152,7 +151,7 @@ function Signuppage() {
 
                         <section className="auth-card" aria-labelledby="signup-title">
                             <h2 id="signup-title">Sign Up</h2>
-                            <p className="subtext">Join MediCare and start managing your hospital with a clean, modern interface.</p>
+                            <p className="subtext">Join MediCare as a patient. Hospital staff roles are assigned by an administrator.</p>
 
                             <form className="form" onSubmit={handleSubmit}>
                                 <div className="form-row">
@@ -193,15 +192,6 @@ function Signuppage() {
                                         value={formData.email}
                                         onChange={handleChange}
                                     />
-                                </div>
-
-                                <div className="field">
-                                    <label htmlFor="role">Role</label>
-                                    <select id="role" name="role" value={formData.role} onChange={handleChange}>
-                                        <option>Hospital Admin</option>
-                                        <option>Doctor</option>
-                                        <option>Patient</option>
-                                    </select>
                                 </div>
 
                                 <div className="form-row">
