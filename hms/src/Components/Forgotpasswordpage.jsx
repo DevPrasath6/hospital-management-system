@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
-import { useAuth } from '../Context/AuthContext';
+import { Link } from 'react-router-dom';
 
 function Forgotpasswordpage() {
-  const { isLoggedIn } = useAuth();
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
 
@@ -23,27 +21,8 @@ function Forgotpasswordpage() {
   }
 
   return (
-    <>
-      <Link className="floating-call" to="/contact" aria-label="Contact us">+</Link>
-      <main className="page">
-        <div className="page-inner">
-          <header className="topbar">
-            <Link className="brand" to="/" aria-label="MediCare home">
-              <span className="brand-mark" aria-hidden="true"></span>
-              <span className="brand-name">MediCare</span>
-            </Link>
-
-            <nav className="nav" aria-label="Primary">
-              <NavLink to="/" end>Home</NavLink>
-              <NavLink to="/about">About Us</NavLink>
-              <NavLink to="/services">Services</NavLink>
-              <NavLink to="/doctors">Doctors</NavLink>
-              <NavLink to="/appointment">Appointment</NavLink>
-              <NavLink to="/contact">Contact</NavLink>
-              {isLoggedIn && <NavLink className="nav-icon" to="/profile" aria-label="Profile">+</NavLink>}
-            </nav>
-          </header>
-
+    <main className="page auth-page">
+      <div className="page-inner">
           <section className="auth-layout">
             <div className="auth-panel">
               <div className="kicker">Account help</div>
@@ -76,31 +55,8 @@ function Forgotpasswordpage() {
               </form>
             </div>
           </section>
-
-          <footer className="site-footer" id="contact">
-            <div>
-              <div className="footer-brand">MediCare</div>
-              <p>Modern hospital management built for clear communication, better care, and faster coordination.</p>
-            </div>
-            <div>
-              <h3>Contact</h3>
-              <p>support@medicare.com</p>
-              <p>+1 (555) 014-2026</p>
-            </div>
-            <div>
-              <h3>Quick Links</h3>
-              <p><Link to="/">Home</Link></p>
-              <p><Link to="/about">About Us</Link></p>
-              <p><Link to="/services">Services</Link></p>
-              <p><Link to="/doctors">Doctors</Link></p>
-              <p><Link to="/appointment">Appointment</Link></p>
-              <p><Link to="/faq">FAQ</Link></p>
-              <p><Link to="/contact">Contact</Link></p>
-            </div>
-          </footer>
-        </div>
-      </main>
-    </>
+      </div>
+    </main>
   );
 }
 

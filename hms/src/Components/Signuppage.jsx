@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../Context/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
 import { storage, storageKeys } from '../Utils/storage';
 import { api } from '../Utils/api';
 
 function Signuppage() {
     const navigate = useNavigate();
-    const { isLoggedIn } = useAuth();
     const [status, setStatus] = useState('');
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
@@ -115,27 +113,8 @@ function Signuppage() {
     }
 
     return (
-        <>
-            <Link className="floating-call" to="/contact" aria-label="Contact us">+</Link>
-            <main className="page">
-                <div className="page-inner">
-                    <header className="topbar">
-                        <Link className="brand" to="/" aria-label="MediCare home">
-                            <span className="brand-mark" aria-hidden="true"></span>
-                            <span className="brand-name">MediCare</span>
-                        </Link>
-
-                        <nav className="nav" aria-label="Primary">
-                            <NavLink to="/" end>Home</NavLink>
-                            <NavLink to="/about">About Us</NavLink>
-                            <NavLink to="/services">Services</NavLink>
-                            <NavLink to="/doctors">Doctors</NavLink>
-                            <NavLink to="/appointment">Appointment</NavLink>
-                            <NavLink to="/contact">Contact</NavLink>
-                            {isLoggedIn && <NavLink className="nav-icon" to="/profile" aria-label="Profile">+</NavLink>}
-                        </nav>
-                    </header>
-
+        <main className="page auth-page">
+            <div className="page-inner">
                     <section className="auth-layout">
                         <div className="auth-panel">
                             <div className="kicker">Create your patient account</div>
@@ -243,29 +222,8 @@ function Signuppage() {
                             </p>
                         </section>
                     </section>
-
-                    <footer className="site-footer site-footer-auth" id="contact">
-                        <div>
-                            <div className="footer-brand">MediCare</div>
-                            <p>Simple onboarding for teams that need a clear hospital workflow.</p>
-                        </div>
-                        <div>
-                            <h3>Contact</h3>
-                            <p>support@medicare.com</p>
-                            <p>+1 (555) 014-2026</p>
-                        </div>
-                        <div>
-                            <h3>Quick Links</h3>
-                            <p><Link to="/about">About Us</Link></p>
-                            <p><Link to="/services">Services</Link></p>
-                            <p><Link to="/doctors">Doctors</Link></p>
-                            <p><Link to="/appointment">Appointment</Link></p>
-                            <p><Link to="/contact">Contact</Link></p>
-                        </div>
-                    </footer>
-                </div>
-            </main>
-        </>
+            </div>
+        </main>
     );
 }
 

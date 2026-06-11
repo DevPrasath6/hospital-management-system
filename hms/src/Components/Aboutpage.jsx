@@ -1,5 +1,11 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import EmergencyIcon from '@mui/icons-material/Emergency';
+import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
+import BiotechIcon from '@mui/icons-material/Biotech';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { useAuth } from '../Context/AuthContext';
 import AboutUsImage from '../Assets/Images/AboutUs.png';
 
@@ -27,26 +33,32 @@ const stats = [
 
 const whyChoose = [
   {
+    Icon: FavoriteIcon,
     title: 'Excellence in Care',
     text: 'Expert professionals with advanced technology delivering world-class medical care with precision and expertise.'
   },
   {
+    Icon: LocalHospitalIcon,
     title: 'Comprehensive Services',
     text: 'Complete healthcare solutions under one roof, from diagnostics to specialized treatments and surgeries.'
   },
   {
+    Icon: EmergencyIcon,
     title: '24/7 Emergency',
     text: 'Rapid, reliable emergency response available round the clock with our dedicated trauma care team.'
   },
   {
+    Icon: AccessibilityNewIcon,
     title: 'Patient First',
     text: 'Compassionate and personalized attention ensuring every patient receives individualized care and support.'
   },
   {
+    Icon: BiotechIcon,
     title: 'Advanced Diagnostics',
     text: 'Precision through modern facilities with state-of-the-art diagnostic equipment and imaging technology.'
   },
   {
+    Icon: ReceiptLongIcon,
     title: 'Affordable & Transparent',
     text: 'Quality care at fair pricing with transparent billing, making healthcare accessible to everyone.'
   }
@@ -92,9 +104,9 @@ function Aboutpage() {
                   </p>
                 </div>
 
-                <div className="about-grid">
+                <div className="content-list">
                   {overviewCards.map((card) => (
-                    <article className="info-card" key={card.title}>
+                    <article className="content-point" key={card.title}>
                       <h3>{card.title}</h3>
                       <p>{card.text}</p>
                     </article>
@@ -160,7 +172,9 @@ function Aboutpage() {
               <ul className="why-grid">
                 {whyChoose.map((item) => (
                   <li key={item.title}>
-                    <div className="why-icon">+</div>
+                    <div className="why-icon" aria-hidden="true">
+                      <item.Icon fontSize="inherit" />
+                    </div>
                     <h4>{item.title}</h4>
                     <p>{item.text}</p>
                   </li>

@@ -64,16 +64,16 @@ function Homepage() {
                   </p>
                 </div>
 
-                <div className="about-grid">
-                  <article className="info-card">
+                <div className="content-list">
+                  <article className="content-point">
                     <h3>Centralized records</h3>
                     <p>Keep patient details, visits, and treatment history organized in a single secure place.</p>
                   </article>
-                  <article className="info-card">
+                  <article className="content-point">
                     <h3>Faster coordination</h3>
                     <p>Reduce waiting time with smoother appointment scheduling and better staff visibility.</p>
                   </article>
-                  <article className="info-card">
+                  <article className="content-point">
                     <h3>Better experience</h3>
                     <p>Give your team and your patients a calm, modern interface that feels easy to use every day.</p>
                   </article>
@@ -92,23 +92,23 @@ function Homepage() {
               </p>
             </div>
 
-            <div className="services-grid">
-              <article className="service-card">
+            <div className="content-list content-list-columns">
+              <article className="content-point">
                 <span className="service-icon">01</span>
                 <h3>Appointment booking</h3>
                 <p>Schedule visits quickly for new and returning patients with a simple flow.</p>
               </article>
-              <article className="service-card">
+              <article className="content-point">
                 <span className="service-icon">02</span>
                 <h3>Doctor management</h3>
                 <p>Track doctors, departments, and availability for better daily coordination.</p>
               </article>
-              <article className="service-card">
+              <article className="content-point">
                 <span className="service-icon">03</span>
                 <h3>Patient records</h3>
                 <p>Organize medical history, notes, and treatment details with clear access control.</p>
               </article>
-              <article className="service-card">
+              <article className="content-point">
                 <span className="service-icon">04</span>
                 <h3>Billing support</h3>
                 <p>Maintain billing information and payment tracking in a clean dashboard layout.</p>
