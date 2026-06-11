@@ -48,11 +48,20 @@ function PatientFeatureModule({
   const [appointmentForm, setAppointmentForm] = useState({
     patientName: `${session?.firstName || ''} ${session?.lastName || ''}`.trim(),
     phone: '',
-    department: 'Cardiology',
+    department: '',
     date: '',
     notes: ''
   });
-  const [doctorForm, setDoctorForm] = useState({ name: '', specialty: '', nextSlot: '', contact: '' });
+  const [doctorForm, setDoctorForm] = useState({
+    name: '',
+    specialty: '',
+    role: '',
+    credentials: '',
+    badge: '',
+    nextSlot: '',
+    contact: '',
+    imageUrl: ''
+  });
   const [recordForm, setRecordForm] = useState({ record: '', date: '', status: 'Ready', note: '' });
   const [billForm, setBillForm] = useState({ invoice: '', service: '', amount: '', status: 'Due' });
   const [supportForm, setSupportForm] = useState({ name: `${session?.firstName || ''} ${session?.lastName || ''}`.trim(), email: session?.email || '', subject: '', message: '' });
@@ -70,7 +79,7 @@ function PatientFeatureModule({
               setAppointmentForm({
                 patientName: `${session?.firstName || ''} ${session?.lastName || ''}`.trim(),
                 phone: '',
-                department: 'Cardiology',
+                department: '',
                 date: '',
                 notes: ''
               });
@@ -88,15 +97,13 @@ function PatientFeatureModule({
               placeholder="Phone number"
               required
             />
-            <select
+            <input
+              type="text"
               value={appointmentForm.department}
               onChange={(event) => setAppointmentForm({ ...appointmentForm, department: event.target.value })}
-            >
-              <option>Cardiology</option>
-              <option>General Medicine</option>
-              <option>Pediatrics</option>
-              <option>Orthopedics</option>
-            </select>
+              placeholder="Department"
+              required
+            />
             <input
               type="date"
               value={appointmentForm.date}
@@ -136,20 +143,24 @@ function PatientFeatureModule({
           <form className="admin-crud-form" onSubmit={(event) => {
             event.preventDefault();
             onCreateDoctor(doctorForm);
-            setDoctorForm({ name: '', specialty: '', nextSlot: '', contact: '' });
+            setDoctorForm({ name: '', specialty: '', role: '', credentials: '', badge: '', nextSlot: '', contact: '', imageUrl: '' });
           }}>
             <input value={doctorForm.name} onChange={(event) => setDoctorForm({ ...doctorForm, name: event.target.value })} placeholder="Doctor name" required />
             <input value={doctorForm.specialty} onChange={(event) => setDoctorForm({ ...doctorForm, specialty: event.target.value })} placeholder="Specialty" required />
+            <input value={doctorForm.role} onChange={(event) => setDoctorForm({ ...doctorForm, role: event.target.value })} placeholder="Role / title shown on card" />
+            <input value={doctorForm.credentials} onChange={(event) => setDoctorForm({ ...doctorForm, credentials: event.target.value })} placeholder="Credentials" />
+            <input value={doctorForm.badge} onChange={(event) => setDoctorForm({ ...doctorForm, badge: event.target.value })} placeholder="Badge" />
             <input value={doctorForm.nextSlot} onChange={(event) => setDoctorForm({ ...doctorForm, nextSlot: event.target.value })} placeholder="Next slot" />
             <input value={doctorForm.contact} onChange={(event) => setDoctorForm({ ...doctorForm, contact: event.target.value })} placeholder="Contact" />
+            <input type="url" value={doctorForm.imageUrl} onChange={(event) => setDoctorForm({ ...doctorForm, imageUrl: event.target.value })} placeholder="Doctor image URL" />
             <button className="button" type="submit">Create doctor</button>
           </form>
         </article>
         <article className="admin-card admin-module-wide">
           <div className="admin-card-heading"><h3>Doctors</h3><span>Live records</span></div>
           <PatientTable
-            columns={['Doctor', 'Specialty', 'Next slot', 'Contact']}
-            rows={doctors.map((item) => ({ _id: item._id, Doctor: item.name, Specialty: item.specialty, 'Next slot': item.nextSlot, Contact: item.contact }))}
+            columns={['Doctor', 'Specialty', 'Role', 'Credentials', 'Image']}
+            rows={doctors.map((item) => ({ _id: item._id, Doctor: item.name, Specialty: item.specialty, Role: item.role || 'Consultant', Credentials: item.credentials || '-', Image: item.imageUrl ? 'Added' : 'Missing' }))}
             renderActions={(row) => (
               <span className="admin-action-row">
                 <button type="button" onClick={() => onUpdateDoctor(row._id, { nextSlot: 'Updated by patient portal' })}>Update</button>

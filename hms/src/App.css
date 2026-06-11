@@ -2550,9 +2550,36 @@ select {
     border-radius: 50%;
     margin-bottom: 20px;
     border: 5px solid var(--soft);
-    background-size: cover;
-    background-position: center;
+    background:
+        radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.88), transparent 24%),
+        linear-gradient(135deg, #e3eed4, #aec3b0);
     flex-shrink: 0;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    position: relative;
+}
+
+.doctor-image::before {
+    content: "DR";
+    color: var(--dark);
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+}
+
+.doctor-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: relative;
+    z-index: 1;
+}
+
+.doctor-status {
+    margin: 12px 0 0;
+    color: var(--muted);
+    line-height: 1.7;
 }
 
 .doctor-card:nth-child(1) .doctor-image {

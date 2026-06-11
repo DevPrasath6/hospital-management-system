@@ -10,7 +10,7 @@ function Appointmentpage() {
   const [formData, setFormData] = useState({
     patientName: '',
     phone: '',
-    department: 'Cardiology',
+    department: '',
     date: '',
     notes: ''
   });
@@ -45,7 +45,7 @@ function Appointmentpage() {
     const submission = {
       patientName: form.get('patientName')?.trim() || '',
       phone: form.get('phone')?.trim() || '',
-      department: form.get('department') || 'Cardiology',
+      department: form.get('department')?.trim() || '',
       date: form.get('date') || '',
       notes: form.get('notes')?.trim() || ''
     };
@@ -61,7 +61,7 @@ function Appointmentpage() {
     setFormData({
       patientName: '',
       phone: '',
-      department: 'Cardiology',
+      department: '',
       date: '',
       notes: ''
     });
@@ -113,19 +113,14 @@ function Appointmentpage() {
                   </div>
                   <div className="field">
                     <label htmlFor="phone">Phone number</label>
-                    <input id="phone" name="phone" type="tel" placeholder="+1 555 123 4567" required value={formData.phone} onChange={handleChange} />
+                    <input id="phone" name="phone" type="tel" placeholder="Phone number" required value={formData.phone} onChange={handleChange} />
                   </div>
                 </div>
 
                 <div className="form-row">
                   <div className="field">
                     <label htmlFor="department">Department</label>
-                    <select id="department" name="department" value={formData.department} onChange={handleChange}>
-                      <option>Cardiology</option>
-                      <option>General Medicine</option>
-                      <option>Pediatrics</option>
-                      <option>Orthopedics</option>
-                    </select>
+                    <input id="department" name="department" type="text" placeholder="Department" required value={formData.department} onChange={handleChange} />
                   </div>
                   <div className="field">
                     <label htmlFor="date">Preferred date</label>
@@ -151,8 +146,7 @@ function Appointmentpage() {
             </div>
             <div>
               <h3>Contact</h3>
-              <p>support@medicare.com</p>
-              <p>+1 (555) 014-2026</p>
+              <p>Use the contact page to reach the hospital team.</p>
             </div>
             <div>
               <h3>Quick Links</h3>

@@ -26,17 +26,10 @@ function AdminModuleTable({ columns, rows, renderActions }) {
 /* ─────────────────────────────────────────────────────────────
    DEPARTMENTS MODULE — full CRUD (local state, no backend endpoint)
 ───────────────────────────────────────────────────────────── */
-const defaultDepartments = [
-  { id: 'd1', name: 'Emergency', head: 'Dr. Kavita Nair', floor: 'Ground floor', rooms: 'ER 1-6', services: 'Triage, Ambulance intake, Trauma care', load: 'High' },
-  { id: 'd2', name: 'Cardiology', head: 'Dr. Raj Mehta', floor: 'Second floor', rooms: 'C-201 to C-206', services: 'OPD consults, ECG, Echo', load: 'Stable' },
-  { id: 'd3', name: 'Pediatrics', head: 'Dr. Anika Rao', floor: 'First floor', rooms: 'P-101 to P-105', services: 'Child OPD, Vaccination, Neonatal review', load: 'Normal' },
-  { id: 'd4', name: 'Orthopedics', head: 'Dr. Vikram Iyer', floor: 'Third floor', rooms: 'O-301 to O-304', services: 'Fracture clinic, Joint pain OPD', load: 'Busy' }
-];
-
 const emptyDeptForm = { name: '', head: '', floor: '', rooms: '', services: '', load: 'Normal' };
 
 function DepartmentsModule({ users }) {
-  const [departments, setDepartments] = useState(defaultDepartments);
+  const [departments, setDepartments] = useState([]);
   const [form, setForm] = useState(emptyDeptForm);
   const [editingId, setEditingId] = useState(null);
 
@@ -68,7 +61,7 @@ function DepartmentsModule({ users }) {
   // Overlay live doctor data from API on top of local department list
   const doctors = users.filter((u) => u.role === 'Doctor');
   const doctorsByDept = doctors.reduce((acc, d) => {
-    const key = d.department || 'General Medicine';
+    const key = d.department || 'Unassigned';
     return { ...acc, [key]: [...(acc[key] || []), d] };
   }, {});
 
@@ -82,7 +75,7 @@ function DepartmentsModule({ users }) {
         </div>
         <form className="admin-crud-form" onSubmit={handleSubmit}>
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Department name" required />
-          <input value={form.head} onChange={(e) => setForm({ ...form, head: e.target.value })} placeholder="Department head (e.g. Dr. Name)" required />
+          <input value={form.head} onChange={(e) => setForm({ ...form, head: e.target.value })} placeholder="Department head" required />
           <input value={form.floor} onChange={(e) => setForm({ ...form, floor: e.target.value })} placeholder="Floor / location" required />
           <input value={form.rooms} onChange={(e) => setForm({ ...form, rooms: e.target.value })} placeholder="Room numbers" required />
           <input value={form.services} onChange={(e) => setForm({ ...form, services: e.target.value })} placeholder="Services (comma-separated)" required />
@@ -104,6 +97,9 @@ function DepartmentsModule({ users }) {
           <h3>Department directory</h3>
           <span>{departments.length} departments</span>
         </div>
+        {departments.length === 0 ? (
+          <p style={{ padding: '1rem', color: 'var(--text-muted, #888)' }}>No departments have been added yet.</p>
+        ) : (
         <div className="department-directory">
           {departments.map((dept) => {
             const liveDoctors = doctorsByDept[dept.name] || [];
@@ -131,6 +127,7 @@ function DepartmentsModule({ users }) {
             );
           })}
         </div>
+        )}
       </article>
     </section>
   );
@@ -247,6 +244,108 @@ function AppointmentsModule({ appointments, onStatusChange, onUpdateAppointment,
    STAFF MODULE — department-style side form (Create / Edit toggle)
    + Edit and Remove buttons always visible per real DB row
 ───────────────────────────────────────────────────────────── */
+const emptyDoctorForm = {
+  name: '',
+  specialty: '',
+  role: '',
+  credentials: '',
+  badge: '',
+  nextSlot: '',
+  contact: '',
+  imageUrl: ''
+};
+
+function DoctorsModule({ doctors, onCreateDoctor, onUpdateDoctor, onDeleteDoctor }) {
+  const [form, setForm] = useState(emptyDoctorForm);
+  const [editingId, setEditingId] = useState(null);
+
+  function startEdit(doctor) {
+    setEditingId(doctor._id);
+    setForm({
+      name: doctor.name || '',
+      specialty: doctor.specialty || '',
+      role: doctor.role || '',
+      credentials: doctor.credentials || '',
+      badge: doctor.badge || '',
+      nextSlot: doctor.nextSlot || '',
+      contact: doctor.contact || '',
+      imageUrl: doctor.imageUrl || ''
+    });
+    document.getElementById('doctor-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(emptyDoctorForm);
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    if (editingId) {
+      await onUpdateDoctor(editingId, form);
+      setEditingId(null);
+    } else {
+      await onCreateDoctor(form);
+    }
+    setForm(emptyDoctorForm);
+  }
+
+  return (
+    <section className="admin-module-layout">
+      <article className="admin-card" id="doctor-form-card">
+        <div className="admin-card-heading">
+          <h3>{editingId ? 'Edit doctor profile' : 'Add doctor profile'}</h3>
+          <span>{editingId ? 'Update' : 'Create'}</span>
+        </div>
+        <form className="admin-crud-form" onSubmit={handleSubmit}>
+          <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Doctor name" required />
+          <input value={form.specialty} onChange={(event) => setForm({ ...form, specialty: event.target.value })} placeholder="Specialty" required />
+          <input value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })} placeholder="Role / title shown on card" />
+          <input value={form.credentials} onChange={(event) => setForm({ ...form, credentials: event.target.value })} placeholder="Credentials (MBBS, MD, DM...)" />
+          <input value={form.badge} onChange={(event) => setForm({ ...form, badge: event.target.value })} placeholder="Badge (Founder, CEO, Senior...)" />
+          <input value={form.nextSlot} onChange={(event) => setForm({ ...form, nextSlot: event.target.value })} placeholder="Next slot / availability" />
+          <input value={form.contact} onChange={(event) => setForm({ ...form, contact: event.target.value })} placeholder="Contact" />
+          <input type="url" value={form.imageUrl} onChange={(event) => setForm({ ...form, imageUrl: event.target.value })} placeholder="Doctor image URL" />
+          <button className="button" type="submit">{editingId ? 'Save changes' : 'Create doctor'}</button>
+          {editingId && <button type="button" onClick={cancelEdit} style={{ marginTop: '0.5rem' }}>Cancel edit</button>}
+        </form>
+      </article>
+
+      <article className="admin-card admin-module-wide">
+        <div className="admin-card-heading">
+          <h3>Doctor profiles</h3>
+          <span>{doctors.length} records</span>
+        </div>
+        {doctors.length === 0 ? (
+          <p style={{ padding: '1rem', color: 'var(--text-muted, #888)' }}>No doctor profiles yet. Use the form to add one.</p>
+        ) : (
+          <AdminModuleTable
+            columns={['Doctor', 'Specialty', 'Role', 'Credentials', 'Image']}
+            rows={doctors.map((item) => ({
+              _id: item._id,
+              Doctor: item.name,
+              Specialty: item.specialty,
+              Role: item.role || 'Consultant',
+              Credentials: item.credentials || '-',
+              Image: item.imageUrl ? 'Added' : 'Missing'
+            }))}
+            renderActions={(row) => (
+              <span className="admin-action-row">
+                <button type="button" onClick={() => startEdit(doctors.find((doctor) => doctor._id === row._id))}>
+                  {editingId === row._id ? 'Editing...' : 'Edit'}
+                </button>
+                <button type="button" onClick={() => { if (editingId === row._id) cancelEdit(); onDeleteDoctor(row._id); }} style={{ color: 'crimson' }}>
+                  Delete
+                </button>
+              </span>
+            )}
+          />
+        )}
+      </article>
+    </section>
+  );
+}
+
 const emptyUserForm = { firstName: '', lastName: '', email: '', password: '', role: 'Doctor', mobileNumber: '' };
 
 function StaffModule({ users, onCreateUser, onUpdateUser, onDeleteUser }) {
@@ -604,10 +703,12 @@ function AdminFeatureModule({
   feature, users, appointments, contacts, doctors, records, bills,
   onStatusChange, onUpdateAppointment, onDeleteAppointment,
   onCreateUser, onUpdateUser, onDeleteUser,
+  onCreateDoctor, onUpdateDoctor, onDeleteDoctor,
   onCreateContact, onUpdateContact, onDeleteContact
 }) {
   if (feature === 'departments') return <DepartmentsModule users={users} />;
   if (feature === 'appointments') return <AppointmentsModule appointments={appointments} onStatusChange={onStatusChange} onUpdateAppointment={onUpdateAppointment} onDelete={onDeleteAppointment} />;
+  if (feature === 'doctors') return <DoctorsModule doctors={doctors} onCreateDoctor={onCreateDoctor} onUpdateDoctor={onUpdateDoctor} onDeleteDoctor={onDeleteDoctor} />;
   if (feature === 'staff') return <StaffModule users={users} onCreateUser={onCreateUser} onUpdateUser={onUpdateUser} onDeleteUser={onDeleteUser} />;
   if (feature === 'resources') return <ResourcesModule contacts={contacts} onCreateContact={onCreateContact} onUpdateContact={onUpdateContact} onDeleteContact={onDeleteContact} />;
   if (feature === 'reports') return <ReportsModule users={users} appointments={appointments} contacts={contacts} doctors={doctors} records={records} bills={bills} onDeleteAppointment={onDeleteAppointment} onDeleteContact={onDeleteContact} />;
@@ -656,6 +757,10 @@ function AdminDashboardFeaturePage() {
   async function handleUpdateUser(id, data) { await api.updateUser(id, data); loadData(); }
   async function handleDeleteUser(id) { await api.deleteUser(id); loadData(); }
 
+  async function handleCreateDoctor(data) { await api.createDoctor(data); loadData(); }
+  async function handleUpdateDoctor(id, data) { await api.updateDoctor(id, data); loadData(); }
+  async function handleDeleteDoctor(id) { await api.deleteDoctor(id); loadData(); }
+
   async function handleCreateContact(data) { await api.createContact(data); loadData(); }
   async function handleUpdateContact(id, data) { await api.updateContact(id, data); loadData(); }
   async function handleDeleteContact(id) { await api.deleteContact(id); loadData(); }
@@ -663,7 +768,7 @@ function AdminDashboardFeaturePage() {
   const liveStats = useMemo(() => ({
     departments: [
       { label: 'Doctors', value: String(users.filter((u) => u.role === 'Doctor').length), note: 'Registered doctor accounts' },
-      { label: 'Departments', value: String(new Set(users.filter((u) => u.role === 'Doctor').map((u) => u.department || 'General Medicine')).size), note: 'Based on doctor records' },
+      { label: 'Departments', value: String(new Set(users.filter((u) => u.role === 'Doctor').map((u) => u.department).filter(Boolean)).size), note: 'Based on doctor records' },
       { label: 'Staff accounts', value: String(users.filter((u) => u.role !== 'Patient').length), note: 'Admin and doctors' }
     ],
     appointments: [
@@ -676,6 +781,11 @@ function AdminDashboardFeaturePage() {
       { label: 'Doctors', value: String(users.filter((u) => u.role === 'Doctor').length), note: 'Clinical accounts' },
       { label: 'Admins', value: String(users.filter((u) => u.role === 'Hospital Admin').length), note: 'Admin accounts' }
     ],
+    doctors: [
+      { label: 'Profiles', value: String(doctors.length), note: 'Doctor directory records' },
+      { label: 'With images', value: String(doctors.filter((doctor) => doctor.imageUrl).length), note: 'Profiles with photo URLs' },
+      { label: 'Specialties', value: String(new Set(doctors.map((doctor) => doctor.specialty).filter(Boolean)).size), note: 'Unique clinical areas' }
+    ],
     resources: [
       { label: 'Messages', value: String(contacts.length), note: 'Total support records' },
       { label: 'Open', value: String(contacts.filter((c) => (c.status || 'Open') === 'Open').length), note: 'Needs response' },
@@ -686,7 +796,7 @@ function AdminDashboardFeaturePage() {
       { label: 'Appointments', value: String(appointments.length), note: 'Appointment records' },
       { label: 'Messages', value: String(contacts.length), note: 'Contact records' }
     ]
-  }), [appointments, contacts, users]);
+  }), [appointments, contacts, doctors, users]);
 
   if (!session) return <Navigate to="/login" replace />;
   if (!page) return <Navigate to="/admin-dashboard" replace />;
@@ -731,6 +841,9 @@ function AdminDashboardFeaturePage() {
             onCreateUser={handleCreateUser}
             onUpdateUser={handleUpdateUser}
             onDeleteUser={handleDeleteUser}
+            onCreateDoctor={handleCreateDoctor}
+            onUpdateDoctor={handleUpdateDoctor}
+            onDeleteDoctor={handleDeleteDoctor}
             onCreateContact={handleCreateContact}
             onUpdateContact={handleUpdateContact}
             onDeleteContact={handleDeleteContact}

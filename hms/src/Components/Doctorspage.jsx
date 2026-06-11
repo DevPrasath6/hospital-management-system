@@ -1,62 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
-
-const doctors = [
-  {
-    badge: 'Founder',
-    name: 'Dr. S. Sanjith',
-    specialty: 'Dermatology & Cosmetology',
-    role: 'Founder & Managing Director, Consultant Dermatologist',
-    credentials: 'MD (DERM)'
-  },
-  {
-    badge: 'CEO',
-    name: 'Dr. P. Selvakumar',
-    specialty: 'Emergency, Critical Care & Anaesthesia',
-    role: 'CEO & Medical Director, Senior Consultant',
-    credentials: 'MD, PDCC'
-  },
-  {
-    name: 'Dr. S. Natarajan',
-    specialty: 'Orthopedic Surgeon',
-    role: 'Senior Consultant, Orthopedic Surgeon',
-    credentials: 'MBBS, MS (ORTHO), D.ORTHO'
-  },
-  {
-    name: 'Dr. R. Premakumari',
-    specialty: 'Obstetrician & Gynaecologist',
-    role: 'Senior Consultant, Obstetrician & Gynaecologist',
-    credentials: 'MBBS, MD (OG)'
-  },
-  {
-    name: 'Dr. N. Padmanaban',
-    specialty: 'Interventional Cardiologist',
-    role: 'Senior Consultant, Interventional Cardiologist',
-    credentials: 'MBBS, MD, DM (CARDIO)'
-  },
-  {
-    name: 'Dr. K. L. Sathish Kumar',
-    specialty: 'Gastroenterologist',
-    role: 'Sr. Consultant Endoscopist, Surgical Gastroenterologist & Laparoscopic...',
-    credentials: 'MBBS, MS (Gen Surg), FRCS (Ed), DBB (Surg Gastro)'
-  },
-  {
-    name: 'Dr. M. Praveen Kumar',
-    specialty: 'Interventional Cardiologist',
-    role: 'Consultant Interventional Cardiologist',
-    credentials: 'MBBS, MD, DM (CARDIO)'
-  },
-  {
-    name: 'Dr. E. Parvathavardhini',
-    specialty: 'Pediatrician & Neonatologist',
-    role: 'Senior Consultant Pediatrician & Neonatologist / Lactation Consultant',
-    credentials: 'MBBS, MD (PAED)'
-  }
-];
+import { api } from '../Utils/api';
 
 function Doctorspage() {
   const { isLoggedIn } = useAuth();
+  const [liveDoctors, setLiveDoctors] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    api.getDoctors()
+      .then((response) => {
+        if (isMounted) setLiveDoctors(response.data || []);
+      })
+      .catch(() => {
+        if (isMounted) setLiveDoctors([]);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <>
       <Link className="floating-call" to="/contact" aria-label="Contact us">+</Link>
@@ -89,22 +59,29 @@ function Doctorspage() {
               </p>
             </div>
 
-            <div className="doctors-grid">
-              {doctors.map((doctor) => (
-                <div className="doctor-card" key={doctor.name}>
+            {isLoading && <p className="doctor-status">Loading doctor profiles...</p>}
+            {!isLoading && liveDoctors.length === 0 ? (
+              <p className="doctor-status">No doctor profiles have been added yet.</p>
+            ) : (
+              <div className="doctors-grid">
+                {liveDoctors.map((doctor) => (
+                <div className="doctor-card" key={doctor._id || doctor.name}>
                   {doctor.badge ? (
                     <div className={`doctor-badge ${doctor.badge === 'CEO' ? 'ceo-badge' : ''}`}>
                       {doctor.badge}
                     </div>
                   ) : null}
-                  <div className="doctor-image"></div>
+                  <div className="doctor-image">
+                    {doctor.imageUrl ? <img src={doctor.imageUrl} alt={doctor.name} loading="lazy" /> : null}
+                  </div>
                   <h3>{doctor.name}</h3>
                   <p className="doctor-specialty">{doctor.specialty}</p>
-                  <p className="doctor-role">{doctor.role}</p>
-                  <p className="doctor-cred">{doctor.credentials}</p>
+                  <p className="doctor-role">{doctor.role || doctor.nextSlot || 'Consultant'}</p>
+                  <p className="doctor-cred">{doctor.credentials || doctor.contact || 'Available by appointment'}</p>
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </section>
 
           <footer className="site-footer" id="contact">
@@ -114,8 +91,7 @@ function Doctorspage() {
             </div>
             <div>
               <h3>Contact</h3>
-              <p>support@medicare.com</p>
-              <p>+1 (555) 014-2026</p>
+              <p>Use the contact page to reach the hospital team.</p>
             </div>
             <div>
               <h3>Quick Links</h3>

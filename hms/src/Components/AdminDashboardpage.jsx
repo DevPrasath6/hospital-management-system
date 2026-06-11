@@ -13,9 +13,6 @@ import AdminMetricsSection from './AdminDashboard/AdminMetricsSection';
 import AdminReportsSection from './AdminDashboard/AdminReportsSection';
 import AdminResourcesSection from './AdminDashboard/AdminResourcesSection';
 import AdminStaffSection from './AdminDashboard/AdminStaffSection';
-import {
-  metrics
-} from './AdminDashboard/adminDashboardData';
 
 function AdminDashboardpage() {
   const { logout } = useAuth();
@@ -105,7 +102,7 @@ function AdminDashboardpage() {
 
           <div className="admin-content">
             <AdminDashboardHero />
-            <AdminMetricsSection metrics={liveMetrics.length ? liveMetrics : metrics} />
+            <AdminMetricsSection metrics={liveMetrics} />
 
             <section className="admin-grid">
               <AdminDepartmentsSection departments={liveDepartments} />

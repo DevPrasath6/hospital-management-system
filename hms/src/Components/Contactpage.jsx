@@ -201,8 +201,7 @@ function Contactpage() {
             </div>
             <div>
               <h3>Contact</h3>
-              <p>support@medicare.com</p>
-              <p>+1 (555) 014-2026</p>
+              <p>Use this page to reach the hospital team.</p>
             </div>
             <div>
               <h3>Quick Links</h3>

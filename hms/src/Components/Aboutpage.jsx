@@ -1,28 +1,7 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
-import EmergencyIcon from '@mui/icons-material/Emergency';
-import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
-import BiotechIcon from '@mui/icons-material/Biotech';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { useAuth } from '../Context/AuthContext';
 import AboutUsImage from '../Assets/Images/AboutUs.png';
-
-const overviewCards = [
-  {
-    title: 'Patient-first workflow',
-    text: 'Keep every visit connected so staff can see the full context before making decisions.'
-  },
-  {
-    title: 'Team coordination',
-    text: 'Help reception, doctors, and billing teams stay aligned without jumping between tools.'
-  },
-  {
-    title: 'Reliable operations',
-    text: 'Support daily hospital work with a layout that stays readable, organized, and quick to use.'
-  }
-];
 
 const stats = [
   { icon: 'ER', number: '9', label: 'Bedded Emergency Unit' },
@@ -33,32 +12,87 @@ const stats = [
 
 const whyChoose = [
   {
-    Icon: FavoriteIcon,
+    icon: (
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#e8f5ee" />
+        <path d="M20 10 C20 10, 28 14, 28 21 C28 26.5 24.4 30 20 30 C15.6 30 12 26.5 12 21 C12 14 20 10 20 10Z" fill="#2a7d4f" opacity="0.2"/>
+        <path d="M17 20 L19.5 22.5 L24 17" stroke="#2a7d4f" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M20 10 C20 10, 28 14, 28 21 C28 26.5 24.4 30 20 30 C15.6 30 12 26.5 12 21 C12 14 20 10 20 10Z" stroke="#2a7d4f" strokeWidth="1.5" fill="none"/>
+      </svg>
+    ),
     title: 'Excellence in Care',
     text: 'Expert professionals with advanced technology delivering world-class medical care with precision and expertise.'
   },
   {
-    Icon: LocalHospitalIcon,
+    icon: (
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#e8f5ee" />
+        <rect x="13" y="17" width="14" height="10" rx="2" fill="#2a7d4f" opacity="0.2" stroke="#2a7d4f" strokeWidth="1.5"/>
+        <path d="M17 17 V14 C17 11.8 18.8 10 21 10 H20 C22.2 10 24 11.8 24 14 V17" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="20" cy="22" r="2" fill="#2a7d4f"/>
+        <path d="M9 13 H31" stroke="#2a7d4f" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+        <path d="M9 27 H31" stroke="#2a7d4f" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+      </svg>
+    ),
     title: 'Comprehensive Services',
     text: 'Complete healthcare solutions under one roof, from diagnostics to specialized treatments and surgeries.'
   },
   {
-    Icon: EmergencyIcon,
+    icon: (
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#e8f5ee" />
+        <path d="M20 11 L20 20 L26 23" stroke="#2a7d4f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="20" cy="20" r="9" stroke="#2a7d4f" strokeWidth="1.5" fill="none"/>
+        <path d="M30 10 L33 7" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+        <circle cx="33" cy="7" r="2" fill="#2a7d4f" opacity="0.5"/>
+      </svg>
+    ),
     title: '24/7 Emergency',
     text: 'Rapid, reliable emergency response available round the clock with our dedicated trauma care team.'
   },
   {
-    Icon: AccessibilityNewIcon,
+    icon: (
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#e8f5ee" />
+        <circle cx="20" cy="16" r="5" fill="#2a7d4f" opacity="0.25" stroke="#2a7d4f" strokeWidth="1.5"/>
+        <path d="M12 30 C12 25.6 15.6 22 20 22 C24.4 22 28 25.6 28 30" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+        <path d="M16 19 C17.2 20.2 18.5 21 20 21 C21.5 21 22.8 20.2 24 19" stroke="#2a7d4f" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
+      </svg>
+    ),
     title: 'Patient First',
     text: 'Compassionate and personalized attention ensuring every patient receives individualized care and support.'
   },
   {
-    Icon: BiotechIcon,
+    icon: (
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#e8f5ee" />
+        <circle cx="20" cy="20" r="7" stroke="#2a7d4f" strokeWidth="1.5" fill="none"/>
+        <circle cx="20" cy="20" r="3" fill="#2a7d4f" opacity="0.5"/>
+        <path d="M20 9 L20 11" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M20 29 L20 31" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M9 20 L11 20" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M29 20 L31 20" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M12.5 12.5 L14 14" stroke="#2a7d4f" strokeWidth="1.2" strokeLinecap="round"/>
+        <path d="M26 26 L27.5 27.5" stroke="#2a7d4f" strokeWidth="1.2" strokeLinecap="round"/>
+        <path d="M27.5 12.5 L26 14" stroke="#2a7d4f" strokeWidth="1.2" strokeLinecap="round"/>
+        <path d="M14 26 L12.5 27.5" stroke="#2a7d4f" strokeWidth="1.2" strokeLinecap="round"/>
+      </svg>
+    ),
     title: 'Advanced Diagnostics',
     text: 'Precision through modern facilities with state-of-the-art diagnostic equipment and imaging technology.'
   },
   {
-    Icon: ReceiptLongIcon,
+    icon: (
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#e8f5ee" />
+        <rect x="11" y="14" width="18" height="14" rx="2.5" fill="#2a7d4f" opacity="0.15" stroke="#2a7d4f" strokeWidth="1.5"/>
+        <path d="M15 14 V12 C15 10.9 15.9 10 17 10 H23 C24.1 10 25 10.9 25 12 V14" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+        <path d="M15 22 H25" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M15 25 H21" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="27" cy="28" r="5" fill="#2a7d4f" opacity="0.15"/>
+        <path d="M24.5 28 L26.2 29.7 L29.5 26" stroke="#2a7d4f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
     title: 'Affordable & Transparent',
     text: 'Quality care at fair pricing with transparent billing, making healthcare accessible to everyone.'
   }
@@ -104,13 +138,12 @@ function Aboutpage() {
                   </p>
                 </div>
 
-                <div className="content-list">
-                  {overviewCards.map((card) => (
-                    <article className="content-point" key={card.title}>
-                      <h3>{card.title}</h3>
-                      <p>{card.text}</p>
-                    </article>
-                  ))}
+                <div className="about-prose">
+                  <p>
+                    MediCare is a hospital management platform built around the way real hospital teams actually
+                    work. From the moment a patient arrives at reception to the time they're discharged, every
+                    step is supported by tools that reduce manual effort and keep information accurate.
+                  </p>
                 </div>
               </div>
             </div>
@@ -172,9 +205,7 @@ function Aboutpage() {
               <ul className="why-grid">
                 {whyChoose.map((item) => (
                   <li key={item.title}>
-                    <div className="why-icon" aria-hidden="true">
-                      <item.Icon fontSize="inherit" />
-                    </div>
+                    <div className="why-icon">{item.icon}</div>
                     <h4>{item.title}</h4>
                     <p>{item.text}</p>
                   </li>

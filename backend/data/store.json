@@ -1,28 +1,5 @@
 {
-  "users": [
-    {
-      "_id": "99f8e0c2-e7f4-47cc-b90a-7d385ac27c79",
-      "firstName": "Sample",
-      "lastName": "1",
-      "email": "abinayaa.a2024cse@sece.ac.in",
-      "mobileNumber": "",
-      "role": "Patient",
-      "password": "LATHAARUMUGAM09",
-      "createdAt": "2026-06-05T06:43:34.831Z",
-      "updatedAt": "2026-06-05T06:43:34.831Z"
-    },
-    {
-      "_id": "7c40779f-0d64-4d2c-bc08-ee56b847226e",
-      "firstName": "Crud",
-      "lastName": "User",
-      "email": "crud1777261960486@example.com",
-      "mobileNumber": "",
-      "role": "Patient",
-      "password": "test123",
-      "createdAt": "2026-04-27T03:52:40.715Z",
-      "updatedAt": "2026-04-27T03:52:40.715Z"
-    }
-  ],
+  "users": [],
   "appointments": [],
   "contacts": [],
   "doctors": [],
