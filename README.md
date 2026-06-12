@@ -4,7 +4,7 @@ A full-stack Hospital Management System built with React, Express, MongoDB, and 
 
 ## Live Project
 
-- Frontend: https://hospital-management-system-orpin-one.vercel.app/
+- Frontend: https://hms-medicare.vercel.app
 - Backend API: https://hospital-management-system-y3xo.onrender.com
 - API health check: https://hospital-management-system-y3xo.onrender.com/api/health
 
