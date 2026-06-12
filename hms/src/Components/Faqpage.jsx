@@ -1,9 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 
+const faqs = [
+  {
+    id: 'records',
+    question: 'How does the Hospital Management System help in managing patient records?',
+    answer: (
+      <>
+        The system stores and manages <strong>patient details digitally, including medical history, appointments,
+        prescriptions, lab reports, and billing information</strong> for easy access and efficient healthcare
+        management.
+      </>
+    )
+  },
+  {
+    id: 'appointments',
+    question: 'Can the Hospital Management System handle appointment scheduling?',
+    answer: (
+      <>
+        Yes, the system allows patients to <strong>book appointments online</strong> while helping doctors and staff
+        manage schedules, reduce waiting time, and avoid appointment conflicts.
+      </>
+    )
+  },
+  {
+    id: 'security',
+    question: 'Is the Hospital Management System secure for storing medical data?',
+    answer: (
+      <>
+        Yes, the system uses secure <strong>authentication and data protection methods</strong> to ensure that patient
+        records and hospital information remain confidential and protected from unauthorized access.
+      </>
+    )
+  }
+];
+
 function Faqpage() {
   const { isLoggedIn } = useAuth();
+  const [openId, setOpenId] = useState(null);
 
   return (
     <>
@@ -37,7 +72,32 @@ function Faqpage() {
               </p>
             </div>
 
-            <p className="doctor-status">No FAQ entries have been added yet.</p>
+            <div className="accordion faq-accordion" id="accordionExample">
+              {faqs.map((faq) => {
+                const isOpen = openId === faq.id;
+
+                return (
+                  <div className="accordion-item" key={faq.id}>
+                    <h2 className="accordion-header">
+                      <button
+                        className={`accordion-button ${isOpen ? '' : 'collapsed'}`.trim()}
+                        type="button"
+                        aria-expanded={isOpen}
+                        aria-controls={`${faq.id}-answer`}
+                        onClick={() => setOpenId(isOpen ? null : faq.id)}
+                      >
+                        {faq.question}
+                      </button>
+                    </h2>
+                    {isOpen ? (
+                      <div id={`${faq.id}-answer`} className="accordion-collapse">
+                        <div className="accordion-body">{faq.answer}</div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
           </section>
 
           <footer className="site-footer" id="contact">
@@ -47,7 +107,8 @@ function Faqpage() {
             </div>
             <div>
               <h3>Contact</h3>
-              <p>Use the contact page to reach the hospital team.</p>
+              <p>support@medicare.com</p>
+              <p>+1 (555) 014-2026</p>
             </div>
             <div>
               <h3>Quick Links</h3>
