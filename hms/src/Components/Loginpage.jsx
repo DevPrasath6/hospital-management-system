@@ -36,14 +36,16 @@ function Loginpage() {
       return;
     }
 
-    let userRecord = null;
+    const localUsers = storage.readLocal(storageKeys.users, []);
+    let userRecord = localUsers.find((user) => user.email === emailValue && user.password === passwordValue) || null;
 
-    try {
-      const response = await api.login({ email: emailValue, password: passwordValue });
-      userRecord = response.data;
-    } catch (apiError) {
-      const users = storage.readLocal(storageKeys.users, []);
-      userRecord = users.find((user) => user.email === emailValue && user.password === passwordValue);
+    if (!userRecord) {
+      try {
+        const response = await api.login({ email: emailValue, password: passwordValue });
+        userRecord = response.data;
+      } catch (apiError) {
+        userRecord = null;
+      }
     }
 
     if (!userRecord) {

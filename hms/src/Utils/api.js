@@ -1,4 +1,7 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://hospital-management-system-y3xo.onrender.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL
+  || (process.env.NODE_ENV === 'development'
+    ? 'http://localhost:5000/api'
+    : 'https://hospital-management-system-y3xo.onrender.com/api');
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
